@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Barangay Concerns{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    {% with header_title="Create Account" header_text="Join us in building a better community" submit_text="Register" footer_text="Already have an account?" footer_link_text="Login here" footer_link_url="security_management:login" %}
+        {% include 'security_management/organisms/auth_card.html' %}
+    {% endwith %}
+</div>
+{% endblock %}

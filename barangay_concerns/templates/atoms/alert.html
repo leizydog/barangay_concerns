@@ -1,0 +1,7 @@
+<div class="alert alert-{{ type|default:'info' }}" role="alert">
+    <span class="alert-icon">
+        {% if type == 'success' %}✓{% elif type == 'error' %}✕{% elif type == 'warning' %}⚠{% else %}ℹ{% endif %}
+    </span>
+    <span class="alert-text">{{ text }}</span>
+    <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+</div>

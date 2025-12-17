@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Report Concern{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Report a Concern</h1>
+            <p class="page-subtitle">Pin the exact location on the map</p>
+        </div>
+    </div>
+
+    <div class="form-with-map d-flex flex-column flex-lg-row gap-4">
+        <!-- Map Picker -->
+        <div class="map-picker-section flex-fill">
+            <h3>📍 Pin Location on Map</h3>
+            <p class="help-text">Click anywhere on the map to select the exact location of the concern.</p>
+            <div id="map-picker" class="map-picker" style="height: 400px; border: 1px solid #ccc;"></div>
+            <div id="selected-location" class="selected-location mt-2">
+                <p><strong>Selected Location:</strong> <span id="location-display">Click on map to select</span></p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="form-container flex-fill">
+            <form method="post" enctype="multipart/form-data" id="concern-form">
+                {% csrf_token %}
+                <div class="form-grid">
+                    {% for field in form %}
+                        {% if field.name not in 'latitude,longitude' %}
+                            {% include 'molecules/form_field.html' with field=field %}
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="form-actions mt-3">
+                    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Submit Concern</button>
+                    <a href="{% url 'concerns:list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Initialize map centered at Plaridel by default
+    const map = L.map('map-picker', {
+        minZoom: 5,
+        maxZoom: 19
+    }).setView([14.892, 120.875], 14);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Marker variable
+    let marker = null;
+
+    // Try to center on user’s location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            map.setView([lat, lng], 15);
+        });
+    }
+
+    // Handle map click to place marker
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        // Remove old marker if exists
+        if (marker) map.removeLayer(marker);
+
+        // Place new marker
+        marker = L.marker([lat, lng]).addTo(map);
+
+        // Update hidden form fields
+        document.getElementById('id_latitude').value = lat.toFixed(6);
+        document.getElementById('id_longitude').value = lng.toFixed(6);
+
+        // Enable submit button
+        document.getElementById('submit-btn').disabled = false;
+
+        // Reverse geocode using Nominatim
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                document.getElementById('location-display').textContent = address;
+                document.getElementById('id_location').value = address;
+
+                // Autofill barangay and municipality if possible
+                if (data.address) {
+                    if (data.address.suburb || data.address.village) {
+                        document.getElementById('id_barangay').value =
+                            data.address.suburb || data.address.village;
+                    }
+                    if (data.address.city || data.address.town || data.address.municipality) {
+                        document.getElementById('id_municipality').value =
+                            data.address.city || data.address.town || data.address.municipality;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Geocoding error:', error);
+                document.getElementById('location-display').textContent =
+                    `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+            });
+    });
+
+    // Ensure lat/lng before form submission
+    document.getElementById('concern-form').addEventListener('submit', function(e) {
+        const lat = document.getElementById('id_latitude').value;
+        const lng = document.getElementById('id_longitude').value;
+        if (!lat || !lng) {
+            e.preventDefault();
+            alert('Please select a location on the map first!');
+        }
+    });
+
+});
+</script>
+{% endblock %}

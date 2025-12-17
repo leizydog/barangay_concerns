@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Archived Concerns{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>📦 Archived Concerns</h1>
+            <p class="page-subtitle">View and manage archived concerns</p>
+        </div>
+        <a href="{% url 'concerns:list' %}" class="btn btn-outline">
+            ← Back to Active Concerns
+        </a>
+    </div>
+    
+    {% if concerns %}
+        <div class="concerns-grid">
+            {% for concern in concerns %}
+                <div class="concern-card">
+                    <div class="concern-card-header">
+                        <span class="badge badge-{{ concern.category|lower }}">{{ concern.get_category_display }}</span>
+                        <span class="badge" style="background: #64748b; color: white;">Archived</span>
+                    </div>
+                    <h3 class="concern-title">{{ concern.title }}</h3>
+                    <p class="concern-location">📍 {{ concern.location }}, {{ concern.barangay }}</p>
+                    <p class="concern-description">{{ concern.description|truncatewords:20 }}</p>
+                    
+                    <div class="concern-card-footer">
+                        <span class="concern-date">Archived: {{ concern.archived_at|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-sm btn-primary">View</a>
+                        <form method="post" action="{% url 'concerns:unarchive' concern.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline">Restore</button>
+                        </form>
+                        <form method="post" action="{% url 'concerns:permanent_delete' concern.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete? This cannot be undone!')">Delete Forever</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No archived concerns found.</p>
+            <a href="{% url 'concerns:list' %}" class="btn btn-primary">View Active Concerns</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

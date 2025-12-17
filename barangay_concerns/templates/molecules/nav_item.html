@@ -1,0 +1,14 @@
+<!-- templates/molecules/concern_card.html -->
+<div class="concern-card" onclick="window.location.href='{% url 'concerns:detail' concern.pk %}'">
+    <div class="concern-card-header">
+        <span class="badge badge-{{ concern.category|lower }}">{{ concern.get_category_display }}</span>
+        <span class="badge badge-status-{{ concern.status|lower }}">{{ concern.get_status_display }}</span>
+    </div>
+    <h3 class="concern-title">{{ concern.title }}</h3>
+    <p class="concern-location">📍 {{ concern.location }}, {{ concern.barangay }}</p>
+    <p class="concern-description">{{ concern.description|truncatewords:20 }}</p>
+    <div class="concern-card-footer">
+        <span class="concern-date">{{ concern.created_at|date:"M d, Y" }}</span>
+        <span class="concern-priority priority-{{ concern.priority|lower }}">{{ concern.get_priority_display }}</span>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+<!-- templates/pages/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}Home - Barangay Concerns{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="container hero-content">
+        <h1 class="hero-title">Community Concerns Platform</h1>
+        <p class="hero-subtitle">
+            Report and track community issues in your barangay. 
+            Help us build a better, safer, and more responsive community.
+        </p>
+        
+        {% if user.is_authenticated %}
+            <div class="hero-actions">
+                <a href="{% url 'concerns:list' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+                <a href="{% url 'concerns:create' %}" class="btn btn-outline btn-lg">Report Concern</a>
+            </div>
+        {% else %}
+            <div class="hero-actions">
+                <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{% url 'security_management:login' %}" class="btn btn-outline btn-lg">Login</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<section class="features">
+    <div class="container">
+        <h2 class="section-title">How It Works</h2>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>Report Issues</h3>
+                <p>Easily report community concerns like floods, road damage, or safety issues with photos and detailed descriptions.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👁️</div>
+                <h3>Track Progress</h3>
+                <p>Monitor the status of your reported concerns in real-time and receive updates from LGU officials.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3>Get Results</h3>
+                <p>See how your concerns are being addressed and contribute to making your community better.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="categories">
+    <div class="container">
+        <h2 class="section-title">Report Categories</h2>
+        
+        <div class="categories-grid">
+            <div class="category-item">
+                <span class="category-icon">🌊</span>
+                <span class="category-name">Flooding</span>
+            </div>
+            <div class="category-item">
+                <span class="category-icon">🛣️</span>
+                <span class="category-name">Road Infrastructure</span>
+            </div>
+            <div class="category-item">
+                <span class="category-icon">🗑️</span>
+                <span class="category-name">Waste Management</span>
+            </div>
+            <div class="category-item">
+                <span class="category-icon">⚡</span>
+                <span class="category-name">Electricity</span>
+            </div>
+            <div class="category-item">
+                <span class="category-icon">💧</span>
+                <span class="category-name">Water Supply</span>
+            </div>
+            <div class="category-item">
+                <span class="category-icon">🚨</span>
+                <span class="category-name">Public Safety</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta">
+    <div class="container cta-content">
+        <h2>Ready to Make a Difference?</h2>
+        <p>Join thousands of citizens working together to improve our communities.</p>
+        {% if not user.is_authenticated %}
+        <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">Create Account</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

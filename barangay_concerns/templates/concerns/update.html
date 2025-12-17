@@ -1,0 +1,19 @@
+<!-- templates/concerns/update.html -->
+{% extends 'base.html' %}
+
+{% block title %}Update Concern{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Update Concern</h1>
+            <p class="page-subtitle">{{ concern.title }}</p>
+        </div>
+    </div>
+    
+    <div class="form-container">
+        {% include 'organisms/concern_form.html' with submit_text="Update Concern" %}
+    </div>
+</div>
+{% endblock %}

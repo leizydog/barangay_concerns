@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Permanent Delete{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-container">
+        <div class="confirm-card">
+            <h1 style="color: #ef4444;">⚠️ Permanent Deletion</h1>
+            <p style="color: #ef4444; font-weight: bold;">This action CANNOT be undone!</p>
+            <p>Are you sure you want to permanently delete this concern from the database?</p>
+            <div class="concern-preview" style="border-left-color: #ef4444;">
+                <h3>{{ concern.title }}</h3>
+                <p>{{ concern.description|truncatewords:30 }}</p>
+                <p><strong>Created:</strong> {{ concern.created_at|date:"F d, Y" }}</p>
+                <p><strong>Reporter:</strong> {{ concern.reporter.username }}</p>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you ABSOLUTELY sure? This CANNOT be undone!')">Yes, Delete Forever</button>
+                    <a href="{% url 'concerns:archive_list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

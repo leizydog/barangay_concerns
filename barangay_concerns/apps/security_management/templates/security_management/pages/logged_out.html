@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Logged Out - Barangay Concerns{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        {% with title="You have been logged out" text="Thank you for using our service. You can log back in anytime." %}
+            {% include 'security_management/atoms/auth_header.html' %}
+        {% endwith %}
+        
+        <div class="auth-footer" style="border-top: none; padding-top: 0;">
+            <a href="{% url 'security_management:login' %}" class="btn btn-primary btn-block">Log In Again</a>
+            <a href="{% url 'home' %}" class="btn btn-outline btn-block" style="margin-top: 0.5rem;">Go to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

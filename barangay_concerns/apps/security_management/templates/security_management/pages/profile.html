@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - Barangay Concerns{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>User Profile</h1>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div class="card">
+            <div class="card-body">
+                <h2>Welcome, {{ user.username }}!</h2>
+                <hr>
+
+                <div class="profile-details">
+                    {% with label="Username" value=user.username %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="Email" value=user.email %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="First Name" value=user.first_name %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="Last Name" value=user.last_name %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="Phone" value=user.phone_number %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="Barangay" value=user.barangay %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    {% with label="Municipality" value=user.municipality %}
+                        {% include 'security_management/molecules/profile_detail.html' %}
+                    {% endwith %}
+                    
+                    <div class="profile-detail-row">
+                        <span class="profile-label"><strong>Role:</strong></span>
+                        <span class="profile-value">
+                            <span class="badge badge-{{ user.role|lower }}">{{ user.get_role_display }}</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'concerns:list' %}" class="btn btn-primary">View Concerns</a>
+                    <a href="{% url 'security_management:logout' %}" class="btn btn-outline">Logout</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>You need to be logged in to view this page.</p>
+            <a href="{% url 'security_management:login' %}" class="btn btn-primary">Log In</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

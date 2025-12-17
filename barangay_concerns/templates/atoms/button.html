@@ -1,0 +1,7 @@
+<button 
+    type="{{ type|default:'button' }}" 
+    class="btn btn-{{ variant|default:'primary' }} {{ class|default:'' }}"
+    {% if disabled %}disabled{% endif %}
+>
+    {{ text }}
+</button>

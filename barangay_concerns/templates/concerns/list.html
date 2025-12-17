@@ -1,0 +1,21 @@
+
+<!-- templates/concerns/list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Concerns Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <div>
+            <h1>Community Concerns</h1>
+            <p class="page-subtitle">Track and manage barangay issues</p>
+        </div>
+        <a href="{% url 'concerns:create' %}" class="btn btn-primary">
+            + Report New Concern
+        </a>
+    </div>
+    
+    {% include 'organisms/concern_list.html' %}
+</div>
+{% endblock %}

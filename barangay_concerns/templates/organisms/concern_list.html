@@ -1,0 +1,46 @@
+<div class="concerns-list">
+    <div class="filters-section">
+        <form method="get" class="filters-form">
+            <div class="filter-group">
+                <input type="text" name="search" placeholder="Search concerns..." value="{{ search_query }}" class="form-input">
+            </div>
+            
+            <div class="filter-group">
+                <select name="status" class="form-input">
+                    <option value="">All Status</option>
+                    <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                    <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                    <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <select name="category" class="form-input">
+                    <option value="">All Categories</option>
+                    <option value="FLOOD" {% if category_filter == 'FLOOD' %}selected{% endif %}>Flooding</option>
+                    <option value="ROAD" {% if category_filter == 'ROAD' %}selected{% endif %}>Road Infrastructure</option>
+                    <option value="WASTE" {% if category_filter == 'WASTE' %}selected{% endif %}>Waste Management</option>
+                    <option value="ELECTRICITY" {% if category_filter == 'ELECTRICITY' %}selected{% endif %}>Electricity</option>
+                    <option value="WATER" {% if category_filter == 'WATER' %}selected{% endif %}>Water Supply</option>
+                    <option value="SAFETY" {% if category_filter == 'SAFETY' %}selected{% endif %}>Public Safety</option>
+                    <option value="OTHER" {% if category_filter == 'OTHER' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{% url 'concerns:list' %}" class="btn btn-outline">Clear</a>
+        </form>
+    </div>
+    
+    <div class="concerns-grid">
+        {% for concern in concerns %}
+            {% include 'molecules/concern_card.html' with concern=concern %}
+        {% empty %}
+            <div class="empty-state">
+                <p>No concerns found.</p>
+                <a href="{% url 'concerns:create' %}" class="btn btn-primary">Report First Concern</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>

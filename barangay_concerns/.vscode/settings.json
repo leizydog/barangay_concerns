@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.html": "django-html"
+        
+        
+    },
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    },
+    "[django-html]": {
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}"
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": false,
+    "javascript.validate.enable": false
+}
+

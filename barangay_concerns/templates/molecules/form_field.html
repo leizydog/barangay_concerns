@@ -1,0 +1,14 @@
+<div class="form-field">
+    {% include 'atoms/label.html' with for_id=field.id_for_label text=field.label required=field.field.required %}
+    {{ field }}
+    {% if field.errors %}
+        <div class="field-errors">
+            {% for error in field.errors %}
+                <span class="error-text">{{ error }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% if field.help_text %}
+        <span class="help-text">{{ field.help_text }}</span>
+    {% endif %}
+</div>

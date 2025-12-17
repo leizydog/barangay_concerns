@@ -1,0 +1,37 @@
+<!-- templates/organisms/navbar.html -->
+<nav class="navbar">
+    <div class="container navbar-container">
+        <a href="{% url 'home' %}" class="navbar-brand">
+            🏘️ Barangay Concerns
+        </a>
+        
+        <div class="navbar-menu" id="navbarMenu">
+            {% if user.is_authenticated %}
+                <a href="{% url 'concerns:list' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'concerns:map' %}" class="nav-link">🗺️ Map View</a>
+                <a href="{% url 'concerns:create' %}" class="nav-link">Report Concern</a>
+                
+                {% if user.is_lgu %}
+                    <a href="{% url 'concerns:archive_list' %}" class="nav-link">📦 Archive</a>
+                {% endif %}
+                
+                <div class="navbar-user">
+                    <span class="user-info">
+                        <span class="user-name">{{ user.username }}</span>
+                        <span class="user-role badge-{{ user.role|lower }}">{{ user.get_role_display }}</span>
+                    </span>
+                    <a href="{% url 'security_management:logout' %}" class="btn btn-sm btn-outline">Logout</a>
+                </div>
+            {% else %}
+                <a href="{% url 'security_management:login' %}" class="btn btn-sm btn-primary">Login</a>
+                <a href="{% url 'security_management:register' %}" class="btn btn-sm btn-outline">Register</a>
+            {% endif %}
+        </div>
+        
+        <button class="navbar-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+</nav>

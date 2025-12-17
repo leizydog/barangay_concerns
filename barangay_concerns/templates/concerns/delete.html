@@ -1,0 +1,26 @@
+<!-- templates/concerns/delete.html -->
+{% extends 'base.html' %}
+
+{% block title %}Delete Concern{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-container">
+        <div class="confirm-card">
+            <h1>Confirm Deletion</h1>
+            <p>Are you sure you want to delete this concern?</p>
+            <div class="concern-preview">
+                <h3>{{ concern.title }}</h3>
+                <p>{{ concern.description|truncatewords:30 }}</p>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                    <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+<input 
+    type="{{ type|default:'text' }}"
+    name="{{ name }}"
+    id="{{ id|default:name }}"
+    class="form-input {{ class|default:'' }}"
+    placeholder="{{ placeholder|default:'' }}"
+    {% if required %}required{% endif %}
+    {% if value %}value="{{ value }}"{% endif %}
+>

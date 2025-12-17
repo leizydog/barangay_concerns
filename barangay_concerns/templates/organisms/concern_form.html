@@ -1,0 +1,14 @@
+<form method="post" enctype="multipart/form-data" class="concern-form">
+    {% csrf_token %}
+    
+    <div class="form-grid">
+        {% for field in form %}
+            {% include 'molecules/form_field.html' with field=field %}
+        {% endfor %}
+    </div>
+    
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{{ submit_text|default:"Submit" }}</button>
+        <a href="{% url 'concerns:list' %}" class="btn btn-outline">Cancel</a>
+    </div>
+</form>
