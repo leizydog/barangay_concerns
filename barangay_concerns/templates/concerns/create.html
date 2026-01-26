@@ -20,6 +20,19 @@
                 <span class="small text-uppercase ls-1">Click on the map to pin location</span>
             </div>
             
+            <!-- Search Bar for Map -->
+            <div class="mb-3 fade-in" style="animation-delay: 150ms;">
+                 <div class="input-group shadow-sm border rounded-3 overflow-hidden">
+                    <span class="input-group-text bg-white border-0 ps-3">
+                        <i data-lucide="search" class="icon-sm text-secondary"></i>
+                    </span>
+                    <input type="text" id="mapSearchInput" class="form-control border-0 shadow-none ps-2" placeholder="Search location to pin (e.g. landmarks, street)...">
+                    <button class="btn btn-primary px-3" type="button" id="mapSearchBtn">
+                        Go
+                    </button>
+                </div>
+            </div>
+
             <div class="card border-0 shadow-sm overflow-hidden sticky-top" style="top: 2rem; z-index: 10;">
                 <div class="position-relative w-100" style="height: 600px;">
                     <div id="map-picker" style="height: 100%; width: 100%; z-index: 1;"></div>
@@ -140,6 +153,44 @@ document.addEventListener('DOMContentLoaded', function() {
             map.setView([lat, lng], 16);
         });
     }
+
+    // -- Map Search Logic --
+    function searchLocation() {
+        const query = document.getElementById('mapSearchInput').value;
+        if (!query) return;
+
+        const btn = document.getElementById('mapSearchBtn');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        btn.disabled = true;
+
+        fetch('https://nominatim.openstreetmap.org/search?countrycodes=ph&format=json&q=' + encodeURIComponent(query))
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 17); // High zoom for precision
+                    
+                    // Show a toast or feedback? No, movement is enough.
+                } else {
+                    alert('Location not found. Please try again.');
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            });
+    }
+
+    document.getElementById('mapSearchBtn').addEventListener('click', searchLocation);
+    document.getElementById('mapSearchInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Stop form submission
+            searchLocation();
+        }
+    });
 
     // Handle map click
     map.on('click', function(e) {

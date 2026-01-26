@@ -21,7 +21,28 @@ INSTALLED_APPS = [
     # Local apps
     'apps.security_management',  # Changed from accounts
     'apps.concerns',
+    'apps.notifications',  # Notification system
+    'apps.analytics',      # Data & Analytics Dashboard
+    'apps.ai_services',    # AI Services
 ]
+
+# AI Configuration
+import os
+from dotenv import load_dotenv
+load_dotenv()
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
+# Email Configuration (Console backend for development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Barangay Concerns <noreply@barangay-concerns.local>'
+
+# For production, use SMTP:
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -94,3 +115,4 @@ AUTH_USER_MODEL = 'security_management.User'  # Changed from accounts.User
 LOGIN_URL = 'security_management:login'  # Changed from accounts:login
 LOGIN_REDIRECT_URL = 'concerns:list'
 LOGOUT_REDIRECT_URL = 'home'
+# Force reload

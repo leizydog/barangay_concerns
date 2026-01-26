@@ -10,6 +10,9 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='pages/home.html'), name='home'),
     path('accounts/', include('apps.security_management.urls')),  # Changed but keep /accounts/ URL prefix
     path('concerns/', include('apps.concerns.urls')),
+    path('notifications/', include('apps.notifications.urls')),  # Notification system
+    path('analytics/', include('apps.analytics.urls')),          # Data & Analytics
+    path('ai/', include('apps.ai_services.urls')),               # AI Chatbot & Services
 ]
 
 if settings.DEBUG:

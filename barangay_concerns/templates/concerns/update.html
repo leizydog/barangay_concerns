@@ -1,25 +1,271 @@
-<!-- templates/concerns/update.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Update Concern{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <div>
-            <h1>Update Concern</h1>
-            <p class="page-subtitle">{{ concern.title }}</p>
-        </div>
+<div class="container py-4">
+    <!-- Header -->
+    <div class="text-center mb-5 fade-in">
+        <h1 class="fw-bold mb-2">Update Report</h1>
+        <p class="text-secondary">Update the details or location of your report.</p>
     </div>
-    
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
+
+    <div class="row g-4 align-items-start fade-in" style="animation-delay: 100ms;">
+        <!-- Left Column: Map -->
+        <div class="col-md-7">
+            <!-- Instructions above map -->
+            <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+                <i data-lucide="map-pin" class="icon-sm"></i>
+                <span class="small text-uppercase ls-1">Update location on map</span>
+            </div>
+            
+            <!-- Search Bar for Map -->
+            <div class="mb-3 fade-in" style="animation-delay: 150ms;">
+                 <div class="input-group shadow-sm border rounded-3 overflow-hidden">
+                    <span class="input-group-text bg-white border-0 ps-3">
+                        <i data-lucide="search" class="icon-sm text-secondary"></i>
+                    </span>
+                    <input type="text" id="mapSearchInput" class="form-control border-0 shadow-none ps-2" placeholder="Search location to pin (e.g. landmarks, street)...">
+                    <button class="btn btn-primary px-3" type="button" id="mapSearchBtn">
+                        Go
+                    </button>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm overflow-hidden sticky-top" style="top: 2rem; z-index: 10;">
+                <div class="position-relative w-100" style="height: 600px;">
+                    <div id="map-picker" style="height: 100%; width: 100%; z-index: 1;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Form -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                     {% include 'organisms/concern_form.html' with submit_text="Update Concern" %}
+                    <form method="post" enctype="multipart/form-data" id="concern-form">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden Lat/Lng Fields -->
+                        {% for field in form %}
+                            {% if field.name == 'latitude' or field.name == 'longitude' %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="mb-4">
+                            <h5 class="fw-bold mb-3">Concern Details</h5>
+                            
+                            <!-- Location Preview -->
+                            <div class="mb-4 p-3 bg-light rounded-3 d-flex gap-3 align-items-center border border-light">
+                                <div class="rounded-circle bg-white p-2 text-primary shadow-sm flex-shrink-0">
+                                    <i data-lucide="map-pin" class="icon-md"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <label class="d-block text-uppercase text-tertiary fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Selected Location</label>
+                                    <div id="location-display" class="fw-medium text-dark text-truncate">
+                                        {{ concern.location|default:"No location selected" }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% for field in form %}
+                                {% if field.name not in 'latitude,longitude,is_anonymous,alias' %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                            {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        
+                                        {% if field.name == 'category' or field.name == 'priority' or field.name == 'status' %}
+                                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select">
+                                                {% for choice in field.field.choices %}
+                                                    <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        {% elif field.name == 'description' %}
+                                            <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" rows="4">{{ field.value|default:'' }}</textarea>
+                                        {% elif field.name == 'image' %}
+                                            {% if field.value %}
+                                                <div class="mb-2">
+                                                    Current: <a href="{{ field.value.url }}" target="_blank" class="small">{{ field.value.name }}</a>
+                                                </div>
+                                            {% endif %}
+                                            <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control">
+                                        {% else %}
+                                            <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" value="{{ field.value|default:'' }}">
+                                        {% endif %}
+                                        
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback d-block mt-1 small">
+                                                {{ field.errors|first }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        {% if is_locked %}
+                        <div class="alert alert-warning small">
+                            <i data-lucide="lock" class="icon-sm"></i> This concern is locked for editing.
+                        </div>
+                        {% else %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm" id="submit-btn">
+                                <i data-lucide="save" class="icon-sm me-1"></i> Save Changes
+                            </button>
+                            <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-light py-2 fw-bold text-secondary">Cancel</a>
+                        </div>
+                        {% endif %}
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    @media (max-width: 768px) {
+        .card > .position-relative {
+            height: 350px !important;
+        }
+    }
+</style>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial Coordinates from context/form
+    var initLat = {{ concern.latitude|default:"14.892" }};
+    var initLng = {{ concern.longitude|default:"120.875" }};
+    var hasLocation = {% if concern.latitude and concern.longitude %}true{% else %}false{% endif %};
+
+    // Initialize map
+    const map = L.map('map-picker', {
+        minZoom: 5,
+        maxZoom: 19,
+        zoomControl: false 
+    }).setView([initLat, initLng], hasLocation ? 16 : 14);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let marker = null;
+
+    // Place existing marker
+    if (hasLocation) {
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background: var(--primary); width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+        marker = L.marker([initLat, initLng], {icon: icon}).addTo(map);
+    } else {
+        // Try to center on user location if no existing location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                map.setView([lat, lng], 16);
+            });
+        }
+    }
+
+    // Handle map click
+    map.on('click', function(e) {
+        if ({% if is_locked %}true{% else %}false{% endif %}) return; // Prevent change if locked
+
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        if (marker) map.removeLayer(marker);
+        
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background: var(--primary); width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        marker = L.marker([lat, lng], {icon: icon}).addTo(map);
+
+        document.getElementById('id_latitude').value = lat.toFixed(6);
+        document.getElementById('id_longitude').value = lng.toFixed(6);
+        
+        // Reverse geocoding
+        document.getElementById('location-display').innerHTML = '<span class="spinner-border spinner-border-sm text-primary" role="status"></span> Finding address...';
+
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                document.getElementById('location-display').textContent = address;
+                
+                const locInput = document.getElementById('id_location');
+                if (locInput) locInput.value = address;
+                
+                if (data.address) {
+                    const barangay = data.address.suburb || data.address.village || data.address.neighbourhood;
+                    const municipality = data.address.city || data.address.town || data.address.municipality;
+                    
+                    const barInput = document.getElementById('id_barangay');
+                    const munInput = document.getElementById('id_municipality');
+                    
+                    if (barangay && barInput) barInput.value = barangay;
+                    if (municipality && munInput) munInput.value = municipality;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('location-display').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+            });
+    });
+
+    // -- Map Search Logic --
+    function searchLocation() {
+        const query = document.getElementById('mapSearchInput').value;
+        if (!query) return;
+
+        const btn = document.getElementById('mapSearchBtn');
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        btn.disabled = true;
+
+        fetch('https://nominatim.openstreetmap.org/search?countrycodes=ph&format=json&q=' + encodeURIComponent(query))
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    map.setView([lat, lon], 17);
+                } else {
+                    alert('Location not found. Please try again.');
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            });
+    }
+
+    document.getElementById('mapSearchBtn').addEventListener('click', searchLocation);
+    document.getElementById('mapSearchInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+            searchLocation();
+        }
+    });
+});
+</script>
 {% endblock %}
