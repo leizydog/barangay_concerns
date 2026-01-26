@@ -4,16 +4,46 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
-from .models import Concern
-from .forms import ConcernForm, ConcernUpdateForm
+from django.http import JsonResponse
+from .models import Concern, Comment, EmergencyUnit
+from .forms import ConcernForm, ConcernUpdateForm, CommentForm
+from .forms import ConcernForm, ConcernUpdateForm, CommentForm
+from .utils import generate_random_alias
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-@login_required
 def concern_list_view(request):
     # Exclude archived and closed concerns - show ALL to everyone
     concerns = Concern.objects.filter(is_archived=False).exclude(status='CLOSED')
     
-    # NO FILTERING BY USER - everyone can see all reports
+    # Geographic Scope Filtering
+    scope = request.GET.get('scope', 'national')
+    
+    # Only allow geo-filtering if user is logged in and has profile data
+    user_location_set = False
+    if request.user.is_authenticated:
+        # Check if user has set their location
+        if request.user.region and request.user.province:
+            user_location_set = True
+            
+            if scope == 'regional':
+                concerns = concerns.filter(region=request.user.region)
+            elif scope == 'provincial':
+                concerns = concerns.filter(province=request.user.province)
+            elif scope == 'city':
+                # Match either city field or municipality field
+                city_val = request.user.city or request.user.municipality
+                if city_val:
+                    concerns = concerns.filter(municipality__icontains=city_val)
+            elif scope == 'barangay':
+                if request.user.barangay:
+                    concerns = concerns.filter(barangay__icontains=request.user.barangay)
+        else:
+            # If user hasn't set location but tries to access local tabs, fallback to national
+            if scope != 'national':
+                pass # Or could add a message asking them to complete profile
+                
     
     # Search functionality
     search_query = request.GET.get('search', '')
@@ -39,10 +69,11 @@ def concern_list_view(request):
         'search_query': search_query,
         'status_filter': status_filter,
         'category_filter': category_filter,
+        'scope': scope,
+        'user_location_set': user_location_set,
     }
     return render(request, 'concerns/list.html', context)
 
-@login_required
 def concern_map_view(request):
     """Display all concerns on an interactive map - exclude closed and archived"""
     concerns = Concern.objects.filter(
@@ -51,7 +82,7 @@ def concern_map_view(request):
         is_archived=False
     ).exclude(status='CLOSED')
     
-    # NO FILTERING BY USER - everyone can see all reports on map
+    # MAP SHOWS EVERYTHING - No User Filtering as requested ("map shows everything")
     
     # Apply same filters as list view
     status_filter = request.GET.get('status', '')
@@ -69,16 +100,13 @@ def concern_map_view(request):
     }
     return render(request, 'concerns/map.html', context)
 
-@login_required
 def concern_map_data(request):
-    """API endpoint to get concern data as JSON for map markers - exclude closed and archived"""
+    """API endpoint to get data for map - exclude closed and archived"""
     concerns = Concern.objects.filter(
         latitude__isnull=False, 
         longitude__isnull=False,
         is_archived=False
     ).exclude(status='CLOSED')
-    
-    # NO FILTERING BY USER - everyone can see all reports
     
     # Apply filters
     status_filter = request.GET.get('status', '')
@@ -111,31 +139,137 @@ def concern_map_data(request):
     
     return JsonResponse({'concerns': data})
 
-@login_required
+def emergency_units_data(request):
+    """API endpoint to get emergency units"""
+    units = EmergencyUnit.objects.all()
+    data = []
+    for unit in units:
+        data.append({
+            'name': unit.name,
+            'type': unit.unit_type,
+            'type_display': unit.get_unit_type_display(),
+            'lat': float(unit.latitude),
+            'lng': float(unit.longitude),
+            'contact': unit.contact_number
+        })
+    return JsonResponse({'units': data})
+
 def concern_detail_view(request, pk):
     concern = get_object_or_404(Concern, pk=pk)
     
-    # Remove the permission check - everyone can view all concerns
     # Only prevent viewing if archived AND user is not LGU
     if concern.is_archived and not request.user.is_lgu():
         messages.error(request, 'This concern has been archived.')
         return redirect('concerns:list')
     
+    
+    # Get comments
+    comments = concern.comments.all()
+    comment_form = CommentForm()
+    
     context = {
         'concern': concern,
-        'can_edit': concern.can_be_edited() or request.user.is_lgu(),
+        'comments': comments,
+        'comment_form': comment_form,
+        'can_edit': concern.can_be_edited() or (request.user.is_authenticated and request.user.is_lgu()),
         'is_locked': concern.is_locked,
+        'is_lgu': request.user.is_authenticated and request.user.groups.filter(name='LGU').exists(),
+        'is_status_pending': concern.status == 'PENDING',
+        'is_status_in_progress': concern.status == 'IN_PROGRESS',
+        'is_status_resolved': concern.status == 'RESOLVED',
+        'is_status_closed': concern.status == 'CLOSED',
+        'is_priority_low': concern.priority == 'LOW',
+        'is_priority_medium': concern.priority == 'MEDIUM',
+        'is_priority_high': concern.priority == 'HIGH',
+        'is_priority_urgent': concern.priority == 'URGENT',
     }
     return render(request, 'concerns/detail.html', context)
 
+
 @login_required
+def concern_add_comment_view(request, pk):
+    """Add a comment to a concern"""
+    concern = get_object_or_404(Concern, pk=pk)
+    
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.concern = concern
+            comment.author = request.user
+            comment.save()
+            
+            messages.success(request, 'Comment added successfully.')
+            return redirect('concerns:detail', pk=pk)
+    
+    return redirect('concerns:detail', pk=pk)
+
 def concern_create_view(request):
     if request.method == 'POST':
         form = ConcernForm(request.POST, request.FILES)
         if form.is_valid():
             concern = form.save(commit=False)
-            concern.reporter = request.user
+            
+            # Handle Anonymous vs Logged-in and Inheritance of Location
+            if request.user.is_authenticated:
+                concern.reporter = request.user
+                
+                # Auto-fill geographic fields from user profile if not manually set/overridden
+                # (Since these aren't in the form, they are blank on the object initially)
+                if request.user.region:
+                    concern.region = request.user.region
+                if request.user.province:
+                    concern.province = request.user.province
+                
+                # We could also infer missing municipal/barangay if blank, 
+                # but the form requires them or user fills them.
+            else:
+                concern.reporter = None
+                concern.is_anonymous = True
+                if not concern.alias:
+                    concern.alias = generate_random_alias()
+            
+            # AI Analysis
+            try:
+                from apps.ai_services.utils import analyze_concern
+                messages.info(request, "AI is analyzing your report...")
+                
+                # Call Gemini
+                analysis = analyze_concern(concern.title, concern.description)
+                
+                if analysis:
+                    suggested_priority = analysis.get('priority', 'LOW')
+                    concern.priority = suggested_priority
+                    
+                    suggested_category = analysis.get('category')
+                    if concern.category == 'OTHER' and suggested_category:
+                        concern.category = suggested_category
+                    
+                    ai_message = f"AI analyzed this report. Suggested Category: {suggested_category}, Priority: {suggested_priority}. {analysis.get('reasoning', '')}"
+            except Exception as e:
+                print(f"AI Error: {e}")
+                ai_message = None
+
             concern.save()
+            
+            # Add AI reasoning as a comment
+            if 'ai_message' in locals() and ai_message:
+                from .models import Comment
+                
+                # Determine comment author (System/Admin if anon)
+                if request.user.is_authenticated:
+                    comment_author = request.user
+                else:
+                    User = get_user_model()
+                    comment_author = User.objects.filter(is_superuser=True).first()
+                
+                if comment_author:
+                    Comment.objects.create(
+                        concern=concern,
+                        author=comment_author, 
+                        content=f"🤖 [System AI] {ai_message}"
+                    )
+
             messages.success(request, 'Concern reported successfully!')
             return redirect('concerns:detail', pk=concern.pk)
     else:

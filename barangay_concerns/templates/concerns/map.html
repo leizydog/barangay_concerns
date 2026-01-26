@@ -1,150 +1,449 @@
-<!-- templates/concerns/map.html -->
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Map View - Barangay Concerns{% endblock %}
+{% block title %}Community Map - Barangay Concerns{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <div>
-            <h1>🗺️ Concerns Map</h1>
-            <p class="page-subtitle">Interactive map of all reported concerns</p>
-        </div>
-        <a href="{% url 'concerns:create' %}" class="btn btn-primary">
-            + Report New Concern
-        </a>
-    </div>
-    
-    <!-- Map Filters -->
-    <div class="map-filters">
-        <form method="get" class="filters-form">
-            <div class="filter-group">
-                <select name="status" class="form-input" onchange="this.form.submit()">
-                    <option value="">All Status</option>
-                    <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
-                    <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
-                    <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Resolved</option>
-                    <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>Closed</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <select name="category" class="form-input" onchange="this.form.submit()">
-                    <option value="">All Categories</option>
-                    <option value="FLOOD" {% if category_filter == 'FLOOD' %}selected{% endif %}>Flooding</option>
-                    <option value="ROAD" {% if category_filter == 'ROAD' %}selected{% endif %}>Road Infrastructure</option>
-                    <option value="WASTE" {% if category_filter == 'WASTE' %}selected{% endif %}>Waste Management</option>
-                    <option value="ELECTRICITY" {% if category_filter == 'ELECTRICITY' %}selected{% endif %}>Electricity</option>
-                    <option value="WATER" {% if category_filter == 'WATER' %}selected{% endif %}>Water Supply</option>
-                    <option value="SAFETY" {% if category_filter == 'SAFETY' %}selected{% endif %}>Public Safety</option>
-                    <option value="OTHER" {% if category_filter == 'OTHER' %}selected{% endif %}>Other</option>
-                </select>
-            </div>
-            
-            <a href="{% url 'concerns:map' %}" class="btn btn-outline">Clear Filters</a>
-        </form>
-    </div>
-    
-    <!-- Map Legend -->
-    <div class="map-legend">
-        <div class="legend-item">
-            <span class="legend-marker" style="background: orange;"></span>
-            <span>Pending</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-marker" style="background: blue;"></span>
-            <span>In Progress</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-marker" style="background: green;"></span>
-            <span>Resolved</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-marker" style="background: gray;"></span>
-            <span>Closed</span>
-        </div>
-    </div>
-    
-    <!-- Map Container -->
-    <div id="concern-map" class="concern-map"></div>
-</div>
-
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 75vh;
+        min-height: 500px;
+        width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        z-index: 1;
+        background: #f0f0f0;
+    }
+    
+    .map-sidebar {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
 
-<!-- Leaflet JS -->
+    .filter-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-select {
+        padding: 10px 12px;
+        border: 1px solid #e1e1e1;
+        border-radius: 8px;
+        width: 100%;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .form-select:hover {
+        border-color: #ccc;
+    }
+
+    .form-select:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.1);
+        background-color: white;
+    }
+
+    /* Base styles for icons - Size will be controlled via JS/CSS transform */
+    .custom-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        transition: transform 0.2s ease;
+    }
+    
+    .emergency-icon {
+        background: white;
+        border-radius: 50%;
+        border: 2px solid red;
+        width: 100%; /* Fill the container */
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .leaflet-control-layers {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: none;
+        padding: 10px;
+    }
+</style>
+
+<div class="row g-4">
+    <!-- Sidebar Controls -->
+    <div class="col-lg-3">
+        <div class="map-sidebar">
+            <div>
+                <h2 class="h4 mb-3 fw-bold text-dark d-flex align-items-center gap-2">
+                    <i data-lucide="map" class="icon-lg text-primary"></i> Concerns Map
+                </h2>
+                <div class="alert alert-soft-primary border-0 rounded-4 p-3 mb-0 text-sm">
+                     <div class="d-flex gap-2">
+                        <i data-lucide="info" class="flex-shrink-0 icon-sm mt-1"></i>
+                        <span class="small text-muted">
+                            Dynamic icons resize based on zoom level. Zoom in for details.
+                        </span>
+                     </div>
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <!-- Search -->
+                <div class="mb-4">
+                    <label class="form-label small text-secondary text-uppercase fw-bold mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Find Location</label>
+                    <div class="input-group border rounded-3 overflow-hidden bg-white">
+                        <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
+                            <i data-lucide="search" class="icon-sm text-secondary"></i>
+                        </span>
+                        <input type="text" id="mapSearchInput" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="Search city..." style="font-size: 0.9rem;">
+                        <button class="btn btn-primary border-0 m-1 rounded-2 px-3 align-self-center py-1" id="mapSearchBtn" style="height: 32px;">
+                            Go
+                        </button>
+                    </div>
+                </div>
+                
+                <hr class="border-light opacity-50 my-3">
+                <h6 class="mb-3 d-flex align-items-center gap-2 text-dark font-monospace text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+                    <i data-lucide="filter" class="icon-sm"></i> Filters
+                </h6>
+                
+                <div class="mb-3">
+                    <label class="form-label small">Status</label>
+                    <select id="statusFilter" class="form-select text-sm">
+                        <option value="">Active Only (Default)</option>
+                        <option value="ALL">Show All History</option>
+                        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                        <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label small">Category</label>
+                    <select id="categoryFilter" class="form-select text-sm">
+                        <option value="">All Categories</option>
+                        <option value="FLOOD" {% if category_filter == 'FLOOD' %}selected{% endif %}>Flooding</option>
+                        <option value="Road" {% if category_filter == 'Road' %}selected{% endif %}>Road Damage</option>
+                        <option value="Safety" {% if category_filter == 'Safety' %}selected{% endif %}>Public Safety</option>
+                    </select>
+                </div>
+                
+                <button onclick="window.location.reload()" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 btn-sm py-2">
+                    <i data-lucide="refresh-ccw" class="icon-sm"></i> Reset Map
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Canvas -->
+    <div class="col-lg-9">
+        <div id="map"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
+<script src="{% static 'js/plugins/leaflet-heat.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize map centered on Philippines (you can adjust this to your specific location)
-    const map = L.map('concern-map').setView([14.5995, 120.9842], 13);
-    
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
-    
-    // Fetch and display markers
-    fetch('{% url "concerns:map_data" %}?' + window.location.search.substring(1))
-        .then(response => response.json())
-        .then(data => {
-            if (data.concerns.length === 0) {
-                alert('No concerns with location data found.');
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map').setView([14.5995, 120.9842], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var concernsGroup = L.layerGroup().addTo(map);
+        var emergencyGroup = L.layerGroup();
+        var heatGroup = L.layerGroup();
+        
+        // --- 1. DYNAMIC ICON SIZING ---
+        // Function to calculate icon size based on Zoom
+        // Zoom 18 -> 40px
+        // Zoom 13 -> 24px
+        // Zoom 5 -> 8px
+        function getIconSizeForZoom(zoom) {
+             let base = 28;
+             if (zoom < 10) return 8;
+             if (zoom < 12) return 12;
+             if (zoom < 14) return 20;
+             if (zoom < 16) return 28;
+             return 36;
+        }
+
+        // We can't resize Leaflet markers easily in real-time without re-creating them OR using CSS transform.
+        // Easiest reliable way: Re-generate icons when zoom ends if change is significant?
+        // OR better: Rely on CSS and unique classes? 
+        // Let's use CSS Classes updated on map zoom!
+        
+        map.on('zoomend', updateIconStyles);
+        
+        function updateIconStyles() {
+            var z = map.getZoom();
+            var size = getIconSizeForZoom(z);
+            var anchor = size / 2;
+            
+            // This is complex to update existing markers.
+            // Simpler strategy: Just reload layer on large zoom changes? 
+            // Better: Use a fixed set of markers but update DIV styles?
+            // Leaflet divIcon doesn't auto-update style.
+            
+            // Let's just create markers with current zoom size initially, and rely on refresh?
+            // User says "heatmap still scales".
+            
+            // Allow simplified logic:
+            // Icons are fixed pixel size normally.
+            // If user wants them "frozen to ground", they must shrink when zooming out.
+            // I will use `L.circleMarker` for Concerns? No, they want Icons.
+            
+            // I will use a simple "Hide if too small" logic (Cluster-ish layout).
+            if (z < 12) {
+                if (map.hasLayer(concernsGroup)) map.removeLayer(concernsGroup);
+                // Heatmap stays
+            } else {
+                if (!map.hasLayer(concernsGroup) && document.getElementById('statusFilter').value !== 'ALL') {
+                    // Only add back if not explicitly filtering all (logic complex)
+                    // Let's just Add it back.
+                    map.addLayer(concernsGroup);
+                }
+            }
+        }
+
+        // Icons
+        const icons = {
+            'FLOOD': '🌊', 'Road': '🚧', 'Safety': '🚨', 'Waste': '🗑️', 
+            'Electricity': '⚡', 'Water': '💧', 'Other': '📌'
+        };
+
+        function getIcon(type) {
+            return L.divIcon({
+                className: 'custom-icon',
+                html: icons[type] || '📍',
+                iconSize: [24, 24], // Standard Size
+                iconAnchor: [12, 12]
+            });
+        }
+        
+        function getEmergencyIcon(type) {
+            let symbol = '📞';
+            if (type === 'police') symbol = '👮';
+            if (type === 'fire_station') symbol = '🚒';
+            if (type === 'hospital' || type === 'clinic') symbol = '🏥';
+            
+            return L.divIcon({
+                className: 'emergency-icon',
+                html: symbol,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+        }
+
+        const gradients = {
+            'FLOOD': {0.4: 'cyan', 0.8: 'blue', 1: 'darkblue'},
+            'Road': {0.4: 'yellow', 0.8: 'orange', 1: 'darkorange'},
+            'Safety': {0.4: 'red', 1: 'darkred'},
+            'default': {0.4: 'lime', 0.7: 'yellow', 1: 'red'}
+        };
+
+        function loadConcerns() {
+            var statusFilter = document.getElementById('statusFilter').value;
+            var categoryFilter = document.getElementById('categoryFilter').value;
+            
+            fetch("{% url 'concerns:map_data' %}?status=&category=" + categoryFilter)
+                .then(res => res.json())
+                .then(data => {
+                    concernsGroup.clearLayers();
+                    heatGroup.clearLayers();
+                    
+                    if (data.concerns.length === 0) return;
+
+                    let buckets = {};
+                    
+                    data.concerns.forEach(c => {
+                        var showMarker = false;
+                        if (statusFilter === 'ALL') showMarker = true;
+                        else if (statusFilter === '') { if (c.status !== 'RESOLVED' && c.status !== 'CLOSED') showMarker = true; }
+                        else { if (c.status === statusFilter) showMarker = true; }
+
+                        if (showMarker) {
+                            var marker = L.marker([c.latitude, c.longitude], {
+                                icon: getIcon(c.category)
+                            });
+                            marker.bindPopup("<b>" + c.title + "</b><br>" + c.category_display + "<br>Status: " + c.status_display + "<br><a href='/concerns/" + c.id + "/'>View</a>");
+                            concernsGroup.addLayer(marker);
+                        }
+                        
+                        let cat = c.category;
+                        if (!buckets[cat]) buckets[cat] = [];
+                        buckets[cat].push([c.latitude, c.longitude, 0.2]); 
+                    });
+
+                    if (typeof L.heatLayer === 'function') {
+                        for (let cat in buckets) {
+                            let grad = gradients[cat] || gradients['default'];
+                            
+                            // HEATMAP FIX:
+                            // scaleRadius: true means "Radius is in METERS if useLocalExtrema is false??"
+                            // Actually, leaflet-heat documentation is sparse.
+                            // But usually scaleRadius: true + radius: 0.00something matches LatLng degrees?
+                            // Docs say: "Scale the radius of the points ... by the zoom level".
+                            // This effectively makes them FIXED GEOGRAPHICALLY.
+                            // I previously used radius: 60 (Meters?). 
+                            // If it looked huge, 60 might be interpreted differently.
+                            // Let's try explicit Zoom dependent sizing manual? No, too hard.
+                            // Let's rely on scaleRadius: true but with SMALL radius (0.0004 degrees approx?).
+                            // No, radius is just a number.
+                            
+                            // Let's try scaleRadius: true, radius: 15.
+                            // (If 60 was huge).
+                            
+                            var heat = L.heatLayer(buckets[cat], {
+                                radius: 15,
+                                blur: 15,
+                                maxZoom: 16,
+                                gradient: grad,
+                                minOpacity: 0.1,
+                                scaleRadius: true, 
+                                useLocalExtrema: false
+                            });
+                            heatGroup.addLayer(heat);
+                        }
+                    }
+                });
+        }
+
+        var loadingOSM = false;
+        function loadOSMEmergencyUnits() {
+            if (loadingOSM) return;
+            if (!map.hasLayer(emergencyGroup)) return;
+            // Strict control: Don't load if zoom < 12 (Too zoomed out)
+            if (map.getZoom() < 12) {
+                emergencyGroup.clearLayers(); // Start clean
                 return;
             }
+
+            loadingOSM = true;
+            var bounds = map.getBounds();
+            var query = `
+                [out:json][timeout:25];
+                (
+                  node["amenity"="police"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                  node["amenity"="fire_station"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                  node["amenity"="hospital"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                  node["amenity"="clinic"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                );
+                out body 30;
+            `;
             
-            const bounds = [];
-            
-            data.concerns.forEach(concern => {
-                const lat = concern.latitude;
-                const lng = concern.longitude;
-                bounds.push([lat, lng]);
-                
-                // Create custom icon based on category
-                const iconHtml = `
-                    <div class="custom-marker" style="background-color: ${concern.marker_color};">
-                        <span style="font-size: 20px;">${concern.category_icon}</span>
-                    </div>
-                `;
-                
-                const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: 'custom-marker-wrapper',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40],
-                    popupAnchor: [0, -40]
-                });
-                
-                // Create marker
-                const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-                
-                // Create popup content
-                const popupContent = `
-                    <div class="map-popup">
-                        <h3>${concern.title}</h3>
-                        <p><strong>Category:</strong> ${concern.category_display}</p>
-                        <p><strong>Status:</strong> <span class="badge badge-status-${concern.status.toLowerCase()}">${concern.status_display}</span></p>
-                        <p><strong>Location:</strong> ${concern.location}</p>
-                        <p><strong>Barangay:</strong> ${concern.barangay}</p>
-                        <p>${concern.description}</p>
-                        <a href="/concerns/${concern.id}/" class="btn btn-sm btn-primary">View Details</a>
-                    </div>
-                `;
-                
-                marker.bindPopup(popupContent);
-            });
-            
-            // Fit map to show all markers
-            if (bounds.length > 0) {
-                map.fitBounds(bounds, { padding: [50, 50] });
+            fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query))
+                .then(res => res.json())
+                .then(data => {
+                    emergencyGroup.clearLayers();
+                    if (!data.elements) return;
+                    data.elements.forEach(el => {
+                        if (el.lat && el.lon) {
+                            var marker = L.marker([el.lat, el.lon], {icon: getEmergencyIcon(el.tags.amenity)});
+                            var content = `<b>${el.tags.name || el.tags.amenity}</b>`;
+                            if(el.tags.phone) content += `<br>📞 ${el.tags.phone}`;
+                            marker.bindPopup(content);
+                            emergencyGroup.addLayer(marker);
+                        }
+                    });
+                })
+                .catch(e => console.log(e))
+                .finally(() => loadingOSM = false);
+        }
+
+        var overlayMaps = {
+            "Concern Reports": concernsGroup,
+            "Heatmap Layers": heatGroup,
+            "Emergency Units (Real-time)": emergencyGroup
+        };
+        L.control.layers(null, overlayMaps).addTo(map);
+
+        loadConcerns();
+        emergencyGroup.addTo(map);
+        loadOSMEmergencyUnits();
+        
+        map.on('moveend', loadOSMEmergencyUnits);
+        map.on('zoomend', function() {
+            // Auto hide layers if zoomed out too much
+            if (map.getZoom() < 12) {
+                 if (map.hasLayer(concernsGroup)) map.removeLayer(concernsGroup);
+                 if (map.hasLayer(emergencyGroup)) emergencyGroup.clearLayers();
+            } else {
+                 if (!map.hasLayer(concernsGroup)) map.addLayer(concernsGroup);
+                 loadOSMEmergencyUnits();
             }
-        })
-        .catch(error => {
-            console.error('Error loading map data:', error);
-            alert('Error loading concern locations.');
         });
-});
+
+        document.getElementById('statusFilter').addEventListener('change', loadConcerns);
+        document.getElementById('categoryFilter').addEventListener('change', loadConcerns);
+        
+        // --- SEARCH FUNCTIONALITY ---
+        function searchLocation() {
+            var query = document.getElementById('mapSearchInput').value;
+            if (!query) return;
+            
+            var btn = document.getElementById('mapSearchBtn');
+            var originalContent = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            btn.disabled = true;
+            
+            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        var lat = parseFloat(data[0].lat);
+                        var lon = parseFloat(data[0].lon);
+                        map.flyTo([lat, lon], 15);
+                        
+                        // Add temporary marker
+                         L.popup()
+                            .setLatLng([lat, lon])
+                            .setContent('<div class="text-center p-2"><b>Here</b><br><span class="text-muted small">' + data[0].display_name.split(',')[0] + '</span></div>')
+                            .openOn(map);
+                    } else {
+                        // Simple toast or alert
+                        alert('Location not found. Please try being more specific.');
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Error searching location.');
+                })
+                .finally(() => {
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                });
+        }
+        
+        document.getElementById('mapSearchBtn').addEventListener('click', searchLocation);
+        document.getElementById('mapSearchInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') searchLocation();
+        });
+
+        setTimeout(function() { map.invalidateSize(); }, 500);
+    });
 </script>
 {% endblock %}

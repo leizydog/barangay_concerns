@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Barangay Concerns{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-7 col-lg-6">
+        <div class="card border-0 shadow-lg fade-in">
+            <!-- Header Background / Optional -->
+            <div class="card-body p-4 pt-5 position-relative">
+                
+                <div class="text-center mb-4">
+                    <div class="position-relative d-inline-block">
+                        <div class="rounded-circle overflow-hidden border border-4 border-white shadow-sm" style="width: 120px; height: 120px; background: #eff6ff;">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary bg-light" style="font-size: 3rem; font-weight: bold;">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm border" style="transform: translate(10%, 10%);">
+                            <i data-lucide="camera" class="icon-sm text-secondary"></i>
+                        </div>
+                    </div>
+                    <h2 class="fw-bold mt-3 mb-1">{{ user.get_full_name|default:user.username }}</h2>
+                    <p class="text-secondary mb-0">@{{ user.alias|default:user.username }}</p>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ user.points|default:0 }}</span>
+                        <div class="stat-label">Karma Points</div>
+                    </div>
+                    <div class="d-none d-sm-block" style="width: 1px; height: 40px; background: #e2e8f0;"></div>
+                    <div class="stat-item">
+                        <span class="stat-value d-flex align-items-center justify-content-center gap-1">
+                            <i data-lucide="shield" class="icon-md text-primary"></i>
+                        </span>
+                        <div class="stat-label">{{ user.get_role_display }}</div>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-3">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger d-flex gap-2 align-items-center">
+                        <i data-lucide="alert-circle" class="icon-sm"></i>
+                        <div>
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                    
+                    {% if field.name == 'region' %}
+                    <div class="mt-4 mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold text-primary mb-1">Location Settings</h5>
+                        <p class="text-secondary small mb-0">Set your default community location to filter concerns.</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% if field.errors %}
+                        <div class="form-error">
+                            {% for error in field.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                            <i data-lucide="save" class="icon-sm me-1"></i> Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

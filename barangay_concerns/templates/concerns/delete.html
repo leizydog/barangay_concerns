@@ -5,21 +5,35 @@
 
 {% block content %}
 <div class="container">
-    <div class="confirm-container">
-        <div class="confirm-card">
-            <h1>Confirm Deletion</h1>
-            <p>Are you sure you want to delete this concern?</p>
-            <div class="concern-preview">
-                <h3>{{ concern.title }}</h3>
-                <p>{{ concern.description|truncatewords:30 }}</p>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
-                    <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-outline">Cancel</a>
+    <div class="row justify-content-center py-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg text-center p-4">
+                <div class="mb-3">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i data-lucide="alert-triangle" class="icon-lg"></i>
+                    </div>
                 </div>
-            </form>
+                
+                <h3 class="fw-bold mb-2">Delete Concern?</h3>
+                <p class="text-secondary mb-4">Are you sure you want to delete this concern? It will be moved to archives or permanently deleted depending on policy.</p>
+                
+                <div class="bg-light p-3 rounded-3 mb-4 text-start border">
+                    <h6 class="fw-bold mb-1">{{ concern.title }}</h6>
+                    <p class="small text-secondary mb-0">{{ concern.description|truncatewords:20 }}</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2 fw-bold">
+                            Yes, Delete It
+                        </button>
+                        <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-light text-secondary py-2 fw-bold">
+                            Cancel, Keep It
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

@@ -30,3 +30,17 @@ class UserLoginForm(AuthenticationForm):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs['class'] = 'form-input'
         self.fields['password'].widget.attrs['class'] = 'form-input'
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['profile_image', 'alias', 'first_name', 'last_name', 'phone_number', 
+                  'region', 'province', 'city', 'municipality', 'barangay']
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-input'
+        
+        # Add help text for alias
+        self.fields['alias'].help_text = "This name will be shown publicly. If left blank, a random one will be generated."

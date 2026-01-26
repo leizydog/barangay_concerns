@@ -1,34 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Barangay Concerns{% endblock %}</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Bootstrap Grid Only (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap-grid.min.css" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom V2 Styles -->
+    <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body>
-    {% include 'organisms/navbar.html' %}
-    
+
+    <!-- Glass Header -->
+    <nav class="navbar-custom">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a href="/" class="brand-logo">
+                <i data-lucide="building-2" class="icon-lg text-primary"></i>
+                <span>Barangay<span style="color: var(--secondary)">Connect</span></span>
+            </a>
+
+            <!-- Desktop Nav -->
+            <div class="d-none d-md-flex align-items-center gap-3">
+                <a href="{% url 'concerns:list' %}"
+                    class="nav-link {% if request.resolver_match.view_name == 'concerns:list' %}active{% endif %}">
+                    Concern List
+                </a>
+                <a href="{% url 'concerns:map' %}"
+                    class="nav-link {% if request.resolver_match.view_name == 'concerns:map' %}active{% endif %}">
+                    Map View
+                </a>
+                {% if user.is_authenticated and user.is_lgu %}
+                <a href="{% url 'analytics:dashboard' %}"
+                    class="nav-link {% if request.resolver_match.view_name == 'analytics:dashboard' %}active{% endif %}">
+                    Dashboard
+                </a>
+                <a href="{% url 'concerns:archive_list' %}"
+                    class="nav-link {% if request.resolver_match.view_name == 'concerns:archive_list' %}active{% endif %}">
+                    Archives
+                </a>
+                {% endif %}
+
+                <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 0.25rem;"></div>
+
+                <!-- Report button visible to everyone -->
+                <a href="{% url 'concerns:create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm px-3" style="height: 38px;">
+                    <i data-lucide="plus" class="icon-sm"></i> Report
+                </a>
+
+                {% if user.is_authenticated %}
+                
+                <!-- Notification Bell -->
+                <a href="{% url 'notifications:list' %}" class="nav-link position-relative p-2 ms-2" id="notificationBell">
+                    <i data-lucide="bell" class="icon-md text-secondary"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white p-0 d-flex align-items-center justify-content-center" 
+                          id="notificationBadge" 
+                          style="width: 18px; height: 18px; font-size: 0.65rem; display: none !important;">
+                        0
+                    </span>
+                </a>
+
+                <div class="d-flex align-items-center gap-2 ms-2">
+                    <a href="{% url 'security_management:profile' %}" class="nav-link p-0 d-flex align-items-center"
+                       style="transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        <div
+                            style="width: 38px; height: 38px; background: #eff6ff; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 1px solid #bfdbfe; overflow: hidden;">
+                            {% if user.profile_image %}
+                                <img src="{{ user.profile_image.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                {{ user.alias|first|default:user.username|first|upper }}
+                            {% endif %}
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'security_management:logout' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                       style="height: 38px; border-radius: 8px;">Log Out</a>
+                </div>
+                {% else %}
+                <a href="{% url 'security_management:login' %}" class="btn btn-secondary btn-sm ms-2">Log In</a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Hamburger -->
+            <button class="d-md-none btn btn-ghost"
+                onclick="document.getElementById('mobileMenu').classList.toggle('d-none')">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu (Simple Toggle) -->
+        <div id="mobileMenu" class="d-none bg-white border-bottom p-3 d-md-none">
+            <div class="d-flex flex-column gap-2">
+                <a href="{% url 'concerns:list' %}" class="nav-link">Concern List</a>
+                <a href="{% url 'concerns:map' %}" class="nav-link">Map View</a>
+                <a href="{% url 'concerns:create' %}" class="btn btn-primary w-100">Report Issue</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'security_management:logout' %}" class="btn btn-secondary w-100">Log Out</a>
+                {% else %}
+                <a href="{% url 'security_management:login' %}" class="btn btn-secondary w-100">Log In</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
     {% if messages %}
-    <div class="messages-container">
+    <div class="container mt-3">
         {% for message in messages %}
-            {% include 'atoms/alert.html' with type=message.tags text=message %}
+        <div class="alert alert-{{ message.tags }} d-flex align-items-center gap-2 p-3 rounded-3 mb-2 message-toast"
+            data-tags="{{ message.tags }}">
+            <i data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}alert-circle{% else %}info{% endif %}"
+                class="text-{{ message.tags|default:'info' }}"></i>
+            <div>{{ message }}</div>
+        </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <main class="main-content">
+    <main class="container py-4" style="min-height: 80vh;">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Barangay Concerns Platform. All rights reserved.</p>
+    <footer class="py-4 mt-auto border-top bg-white">
+        <div class="container text-center text-secondary" style="font-size: 0.9rem;">
+            <p class="mb-1">&copy; 2026 <strong>BarangayConnect</strong>. Empowering Communities.</p>
         </div>
     </footer>
 
-    <script src="{% static 'js/main.js' %}"></script>
+    <!-- Chatbot -->
+    {% include 'organisms/chatbot.html' %}
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+        
+        // Notification Polling
+        {% if user.is_authenticated %}
+        function updateNotificationBadge() {
+            fetch('{% url "notifications:count_api" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count > 99 ? '99+' : data.count;
+                        badge.style.setProperty('display', 'flex', 'important');
+                    } else {
+                        badge.style.setProperty('display', 'none', 'important');
+                    }
+                })
+                .catch(error => console.error('Error fetching notifications:', error));
+        }
+        
+        document.addEventListener('DOMContentLoaded', updateNotificationBadge);
+        setInterval(updateNotificationBadge, 30000);
+        {% endif %}
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

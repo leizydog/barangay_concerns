@@ -1,14 +1,14 @@
-<div class="form-field">
+<div class="form-group mb-3">
     {% include 'atoms/label.html' with for_id=field.id_for_label text=field.label required=field.field.required %}
     {{ field }}
     {% if field.errors %}
-        <div class="field-errors">
+        <div class="form-error mt-1 small">
             {% for error in field.errors %}
-                <span class="error-text">{{ error }}</span>
+                <span>{{ error }}</span>
             {% endfor %}
         </div>
     {% endif %}
     {% if field.help_text %}
-        <span class="help-text">{{ field.help_text }}</span>
+        <small class="text-muted">{{ field.help_text }}</small>
     {% endif %}
 </div>

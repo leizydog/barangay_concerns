@@ -1,71 +1,135 @@
 {% extends 'base.html' %}
-{% block title %}Report Concern{% endblock %}
+{% load static %}
+
+{% block title %}Report a Concern{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <div>
-            <h1>Report a Concern</h1>
-            <p class="page-subtitle">Pin the exact location on the map</p>
-        </div>
+<div class="container py-4">
+    <!-- Header -->
+    <div class="text-center mb-5 fade-in">
+        <h1 class="fw-bold mb-2">New Report</h1>
+        <p class="text-secondary">Help us improve the barangay by pinning the issue on the map.</p>
     </div>
 
-    <div class="form-with-map d-flex flex-column flex-lg-row gap-4">
-        <!-- Map Picker -->
-        <div class="map-picker-section flex-fill">
-            <h3>📍 Pin Location on Map</h3>
-            <p class="help-text">Click anywhere on the map to select the exact location of the concern.</p>
-            <div id="map-picker" class="map-picker" style="height: 400px; border: 1px solid #ccc;"></div>
-            <div id="selected-location" class="selected-location mt-2">
-                <p><strong>Selected Location:</strong> <span id="location-display">Click on map to select</span></p>
+    <div class="row g-4 align-items-start fade-in" style="animation-delay: 100ms;">
+        <!-- Left Column: Map -->
+        <div class="col-md-7">
+            <!-- Instructions above map -->
+            <div class="d-flex align-items-center gap-2 mb-2 text-primary fw-bold">
+                <i data-lucide="map-pin" class="icon-sm"></i>
+                <span class="small text-uppercase ls-1">Click on the map to pin location</span>
+            </div>
+            
+            <div class="card border-0 shadow-sm overflow-hidden sticky-top" style="top: 2rem; z-index: 10;">
+                <div class="position-relative w-100" style="height: 600px;">
+                    <div id="map-picker" style="height: 100%; width: 100%; z-index: 1;"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Form -->
-        <div class="form-container flex-fill">
-            <form method="post" enctype="multipart/form-data" id="concern-form">
-                {% csrf_token %}
-                <div class="form-grid">
-                    {% for field in form %}
-                        {% if field.name not in 'latitude,longitude' %}
-                            {% include 'molecules/form_field.html' with field=field %}
-                        {% else %}
-                            {{ field }}
-                        {% endif %}
-                    {% endfor %}
-                </div>
+        <!-- Right Column: Form -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="concern-form">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden Lat/Lng Fields -->
+                        {% for field in form %}
+                            {% if field.name == 'latitude' or field.name == 'longitude' %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
 
-                <div class="form-actions mt-3">
-                    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Submit Concern</button>
-                    <a href="{% url 'concerns:list' %}" class="btn btn-outline">Cancel</a>
+                        <div class="mb-4">
+                            <h5 class="fw-bold mb-3">Concern Details</h5>
+                            
+                            <!-- Location Preview -->
+                            <div class="mb-4 p-3 bg-light rounded-3 d-flex gap-3 align-items-center border border-light">
+                                <div class="rounded-circle bg-white p-2 text-primary shadow-sm flex-shrink-0">
+                                    <i data-lucide="map-pin" class="icon-md"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <label class="d-block text-uppercase text-tertiary fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Selected Location</label>
+                                    <div id="location-display" class="fw-medium text-dark text-truncate">No location selected</div>
+                                </div>
+                            </div>
+
+                            {% for field in form %}
+                                {% if field.name not in 'latitude,longitude,is_anonymous,alias' %}
+                                    <div class="mb-3">
+                                        <label for="{{ field.id_for_label }}" class="form-label text-secondary small fw-bold text-uppercase mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                                            {{ field.label }} {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                                        </label>
+                                        
+                                        {% if field.name == 'category' or field.name == 'priority' %}
+                                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-select">
+                                                {% for choice in field.field.choices %}
+                                                    <option value="{{ choice.0 }}" {% if field.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        {% elif field.name == 'description' %}
+                                            <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" rows="4" placeholder="Describe the issue detail...">{{ field.value|default:'' }}</textarea>
+                                        {% elif field.name == 'image' %}
+                                            <input type="file" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control">
+                                        {% else %}
+                                            <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="form-control" value="{{ field.value|default:'' }}">
+                                        {% endif %}
+                                        
+                                        {% if field.errors %}
+                                            <div class="invalid-feedback d-block mt-1 small">
+                                                {{ field.errors|first }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm" id="submit-btn" disabled>
+                                <i data-lucide="send" class="icon-sm me-1"></i> Submit Report
+                            </button>
+                            <a href="{% url 'concerns:list' %}" class="btn btn-light py-2 fw-bold text-secondary">Cancel</a>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
+<style>
+    @media (max-width: 768px) {
+        /* Force map to be shorter on mobile so form is reachable */
+        .card > .position-relative {
+            height: 350px !important;
+        }
+    }
+</style>
+
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-
     // Initialize map centered at Plaridel by default
     const map = L.map('map-picker', {
         minZoom: 5,
-        maxZoom: 19
+        maxZoom: 19,
+        zoomControl: false 
     }).setView([14.892, 120.875], 14);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Marker variable
     let marker = null;
 
     // Try to center on user’s location
@@ -73,65 +137,65 @@ document.addEventListener('DOMContentLoaded', function() {
         navigator.geolocation.getCurrentPosition(function(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            map.setView([lat, lng], 15);
+            map.setView([lat, lng], 16);
         });
     }
 
-    // Handle map click to place marker
+    // Handle map click
     map.on('click', function(e) {
         const lat = e.latlng.lat;
         const lng = e.latlng.lng;
 
-        // Remove old marker if exists
         if (marker) map.removeLayer(marker);
+        
+        // Custom marker icon
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background: var(--primary); width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
 
-        // Place new marker
-        marker = L.marker([lat, lng]).addTo(map);
+        marker = L.marker([lat, lng], {icon: icon}).addTo(map);
 
-        // Update hidden form fields
         document.getElementById('id_latitude').value = lat.toFixed(6);
         document.getElementById('id_longitude').value = lng.toFixed(6);
 
-        // Enable submit button
-        document.getElementById('submit-btn').disabled = false;
+        // Visual feedback on button
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = false;
+        btn.classList.add('animate-pulse'); // Add some animation class if exists
+        
+        // Reverse geocoding
+        document.getElementById('location-display').innerHTML = '<span class="spinner-border spinner-border-sm text-primary" role="status"></span> Finding address...';
 
-        // Reverse geocode using Nominatim
         fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
             .then(response => response.json())
             .then(data => {
                 const address = data.display_name || `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
                 document.getElementById('location-display').textContent = address;
-                document.getElementById('id_location').value = address;
+                
+                // Try to fill visible address field if it exists
+                const locInput = document.getElementById('id_location');
+                if (locInput) locInput.value = address;
 
-                // Autofill barangay and municipality if possible
+                // Autofill other fields
                 if (data.address) {
-                    if (data.address.suburb || data.address.village) {
-                        document.getElementById('id_barangay').value =
-                            data.address.suburb || data.address.village;
-                    }
-                    if (data.address.city || data.address.town || data.address.municipality) {
-                        document.getElementById('id_municipality').value =
-                            data.address.city || data.address.town || data.address.municipality;
-                    }
+                    const barangay = data.address.suburb || data.address.village || data.address.neighbourhood;
+                    const municipality = data.address.city || data.address.town || data.address.municipality;
+                    
+                    const barInput = document.getElementById('id_barangay');
+                    const munInput = document.getElementById('id_municipality');
+                    
+                    if (barangay && barInput) barInput.value = barangay;
+                    if (municipality && munInput) munInput.value = municipality;
                 }
             })
             .catch(error => {
-                console.error('Geocoding error:', error);
-                document.getElementById('location-display').textContent =
-                    `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                console.error(error);
+                document.getElementById('location-display').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
             });
     });
-
-    // Ensure lat/lng before form submission
-    document.getElementById('concern-form').addEventListener('submit', function(e) {
-        const lat = document.getElementById('id_latitude').value;
-        const lng = document.getElementById('id_longitude').value;
-        if (!lat || !lng) {
-            e.preventDefault();
-            alert('Please select a location on the map first!');
-        }
-    });
-
 });
 </script>
 {% endblock %}

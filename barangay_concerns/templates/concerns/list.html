@@ -1,21 +1,189 @@
+﻿{% extends 'base.html' %}
+{% load static %}
 
-<!-- templates/concerns/list.html -->
-{% extends 'base.html' %}
-
-{% block title %}Concerns Dashboard{% endblock %}
+{% block title %}Concern List - Barangay Connect{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header">
-        <div>
-            <h1>Community Concerns</h1>
-            <p class="page-subtitle">Track and manage barangay issues</p>
+<div class="fade-in">
+    <!-- Header / Filters -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-5 gap-3">
+        <div class="col-md-6">
+            <h1 class="fw-bold mb-1 text-primary display-6">Community Concerns</h1>
+            <p class="text-secondary mb-0">Browse and track reported issues in our barangay.</p>
         </div>
-        <a href="{% url 'concerns:create' %}" class="btn btn-primary">
-            + Report New Concern
-        </a>
     </div>
-    
-    {% include 'organisms/concern_list.html' %}
+
+    <!-- Geographic Scopes Tabs -->
+    <div class="d-flex overflow-auto pb-2 mb-4 gap-2 no-scrollbar border-bottom pb-3">
+        <a href="?scope=national{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+           class="btn {% if scope == 'national' %}btn-primary{% else %}btn-secondary border-0 bg-transparent text-secondary{% endif %} rounded-pill px-4 fw-bold">
+            National
+        </a>
+        
+        {% if user.is_authenticated %}
+            <a href="?scope=regional{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="btn {% if scope == 'regional' %}btn-primary{% else %}btn-secondary border-0 bg-transparent text-secondary{% endif %} rounded-pill px-4 fw-bold">
+               Regional
+               {% if user.region %}<span class="ms-1 opacity-50 small fw-normal">({{ user.region }})</span>{% endif %}
+            </a>
+            <a href="?scope=provincial{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="btn {% if scope == 'provincial' %}btn-primary{% else %}btn-secondary border-0 bg-transparent text-secondary{% endif %} rounded-pill px-4 fw-bold">
+               Provincial
+            </a>
+            <a href="?scope=city{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="btn {% if scope == 'city' %}btn-primary{% else %}btn-secondary border-0 bg-transparent text-secondary{% endif %} rounded-pill px-4 fw-bold">
+               City/Municipal
+            </a>
+            <a href="?scope=barangay{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}" 
+               class="btn {% if scope == 'barangay' %}btn-primary{% else %}btn-secondary border-0 bg-transparent text-secondary{% endif %} rounded-pill px-4 fw-bold">
+               Barangay
+            </a>
+        {% else %}
+            <span class="d-inline-flex align-items-center text-muted small ms-2" title="Login to filter by your community">
+                <i data-lucide="lock" class="icon-sm me-1"></i> Login to filter by location
+            </span>
+        {% endif %}
+    </div>
+
+    {% if not user_location_set and scope != 'national' and user.is_authenticated %}
+    <div class="alert alert-warning shadow-sm border-warning d-flex align-items-center gap-2 mb-4 rounded-3">
+        <i data-lucide="map-pin" class="icon-md text-warning"></i>
+        <div>
+            <strong>Complete your location profile!</strong> 
+            To see concerns in your area, please <a href="{% url 'security_management:profile' %}" class="fw-bold text-dark text-decoration-underline">set your Region and Province</a>.
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <span class="badge bg-light text-secondary border">
+                Showing: <span class="text-dark fw-bold">{{ scope|title }}</span> Scope
+            </span>
+        </div>
+
+        <form method="get" class="d-flex align-items-center flex-wrap" style="gap: 12px;">
+            <!-- Search Box -->
+            <div class="position-relative d-flex align-items-center">
+                <i data-lucide="search" style="position: absolute; left: 12px; z-index: 10; width: 18px; height: 18px; color: #64748b; top: 50%; transform: translateY(-50%);"></i>
+                <input type="text" name="search" class="form-control shadow-sm" placeholder="Search..." value="{{ search_query }}" 
+                       style="padding-left: 40px; height: 45px; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 240px;">
+            </div>
+
+            <!-- Filters Group -->
+            <div class="d-flex gap-2">
+                <select name="category" class="form-select shadow-sm" style="height: 45px; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 140px; cursor: pointer;" onchange="this.form.submit()">
+                    <option value="">All Topics</option>
+                    <option value="FLOOD" {% if category_filter == 'FLOOD' %}selected{% endif %}>Flooding</option>
+                    <option value="ROAD" {% if category_filter == 'ROAD' %}selected{% endif %}>Roads</option>
+                    <option value="SAFETY" {% if category_filter == 'SAFETY' %}selected{% endif %}>Safety</option>
+                    <option value="WASTE" {% if category_filter == 'WASTE' %}selected{% endif %}>Waste</option>
+                    <option value="ELECTRICITY" {% if category_filter == 'ELECTRICITY' %}selected{% endif %}>Power</option>
+                    <option value="WATER" {% if category_filter == 'WATER' %}selected{% endif %}>Water</option>
+                </select>
+
+                <select name="status" class="form-select shadow-sm" style="height: 45px; border-radius: 12px; border: 1px solid #e2e8f0; min-width: 140px; cursor: pointer;" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>Active</option>
+                    <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary shadow-sm d-flex align-items-center justify-content-center" 
+                        style="height: 45px; width: 45px; border-radius: 12px; padding: 0; flex-shrink: 0;">
+                    <i data-lucide="filter" style="width: 20px; height: 20px;"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="grid-container">
+        {% for concern in concerns %}
+        <a href="{% url 'concerns:detail' concern.pk %}" class="card concern-card text-decoration-none h-100 fade-in"
+            style="animation-delay: 100ms;">
+            
+            <!-- Image / Pattern Area -->
+            <div class="card-img-wrapper {% if not concern.image %}bg-gradient-{{ concern.category|lower|default:'default' }}{% endif %} d-flex align-items-center justify-content-center">
+                <!-- Badges (Floating) -->
+                <div class="card-badges-top">
+                    <span class="badge badge-status-{{ concern.status|lower }} shadow-sm">
+                        {{ concern.get_status_display }}
+                    </span>
+                    
+                    {% if concern.priority and concern.priority != 'LOW' %}
+                    <span class="badge badge-priority-{{ concern.priority|lower }} shadow-sm">
+                        {{ concern.priority }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if concern.image %}
+                <img src="{{ concern.image.url }}" alt="Concern">
+                {% else %}
+                <!-- Large Semantic Icon -->
+                <div class="text-white opacity-50">
+                    {% if concern.category == 'FLOOD' %}<i data-lucide="waves" style="width: 80px; height: 80px;"></i>
+                    {% elif concern.category == 'ROAD' %}<i data-lucide="cone" style="width: 80px; height: 80px;"></i>
+                    {% elif concern.category == 'SAFETY' %}<i data-lucide="shield-alert" style="width: 80px; height: 80px;"></i>
+                    {% elif concern.category == 'WASTE' %}<i data-lucide="trash-2" style="width: 80px; height: 80px;"></i>
+                    {% elif concern.category == 'ELECTRICITY' %}<i data-lucide="zap" style="width: 80px; height: 80px;"></i>
+                    {% elif concern.category == 'WATER' %}<i data-lucide="droplet" style="width: 80px; height: 80px;"></i>
+                    {% else %}<i data-lucide="map-pin" style="width: 80px; height: 80px;"></i>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Content Area -->
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2 text-xs fw-bold text-uppercase text-secondary">
+                    <span>{{ concern.get_category_display }}</span>
+                    <span class="opacity-50">&bull;</span>
+                    <span>{{ concern.created_at|timesince }} ago</span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-2 text-truncate" style="font-size: 1.1rem; letter-spacing: -0.01em;">
+                    {{ concern.title }}
+                </h5>
+                
+                <p class="text-secondary small mb-4"
+                    style="display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6; opacity: 0.8;">
+                    {{ concern.description|truncatechars:150 }}
+                </p>
+
+                <div class="mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary text-xs fw-bold"
+                            style="width: 28px; height: 28px;">
+                            <i data-lucide="user" class="icon-sm"></i>
+                        </div>
+                        <span class="text-secondary small fw-medium">
+                            {% if concern.reporter %}{{ concern.reporter.alias|default:concern.reporter.first_name|default:concern.reporter.username|truncatechars:12 }}{% else %}Anonymous{% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if concern.comments.count > 0 %}
+                    <div class="d-flex align-items-center gap-1 text-primary small fw-bold bg-primary-light px-2 py-1 rounded-pill">
+                        <i data-lucide="message-square" class="icon-sm"></i> {{ concern.comments.count }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-12 py-5 text-center text-secondary">
+            <i data-lucide="search-x" class="icon-xl mb-3 opacity-50"></i>
+            <h3>No concerns found.</h3>
+            <p>Try adjusting your search filters.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Floating Action Button (Mobile Only) -->
+    <a href="{% url 'concerns:create' %}"
+        class="d-md-none position-fixed bottom-0 end-0 m-3 btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+        style="width: 56px; height: 56px; z-index: 100;">
+        <i data-lucide="plus" class="icon-lg"></i>
+    </a>
 </div>
 {% endblock %}

@@ -34,6 +34,8 @@ class Concern(models.Model):
     location = models.CharField(max_length=255)
     barangay = models.CharField(max_length=100)
     municipality = models.CharField(max_length=100)
+    province = models.CharField(max_length=100, blank=True)
+    region = models.CharField(max_length=100, blank=True)
     
     # Map coordinates
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -44,7 +46,7 @@ class Concern(models.Model):
     
     image = models.ImageField(upload_to='concerns/', blank=True, null=True)
     
-    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reported_concerns')
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reported_concerns', null=True, blank=True)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_concerns')
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,6 +60,10 @@ class Concern(models.Model):
     
     # Track if concern can be edited
     is_locked = models.BooleanField(default=False)
+
+    # Hide reporter identity
+    is_anonymous = models.BooleanField(default=False, help_text="Hide my identity from public view")
+    alias = models.CharField(max_length=50, blank=True, null=True, help_text="Display name if anonymous (optional)")
     
     class Meta:
         ordering = ['-created_at']
@@ -119,3 +125,35 @@ class Concern(models.Model):
             self.resolved_at = timezone.now()
         
         super().save(*args, **kwargs)
+
+
+class Comment(models.Model):
+    concern = models.ForeignKey(Concern, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"Comment by {self.author.username} on {self.concern.title}"
+
+class EmergencyUnit(models.Model):
+    UNIT_TYPES = (
+        ('POLICE', 'Police Station'),
+        ('FIRE', 'Fire Station'),
+        ('HOSPITAL', 'Hospital/Clinic'),
+        ('BARANGAY', 'Barangay Hall'),
+        ('EVACUATION', 'Evacuation Center'),
+    )
+    
+    name = models.CharField(max_length=100)
+    unit_type = models.CharField(max_length=20, choices=UNIT_TYPES)
+    contact_number = models.CharField(max_length=50, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_unit_type_display()})"

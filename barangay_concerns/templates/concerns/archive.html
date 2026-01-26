@@ -14,41 +14,53 @@
         </a>
     </div>
     
-    {% if concerns %}
-        <div class="concerns-grid">
-            {% for concern in concerns %}
-                <div class="concern-card">
-                    <div class="concern-card-header">
+    <div class="row g-4">
+        {% for concern in concerns %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="badge badge-{{ concern.category|lower }}">{{ concern.get_category_display }}</span>
-                        <span class="badge" style="background: #64748b; color: white;">Archived</span>
-                    </div>
-                    <h3 class="concern-title">{{ concern.title }}</h3>
-                    <p class="concern-location">📍 {{ concern.location }}, {{ concern.barangay }}</p>
-                    <p class="concern-description">{{ concern.description|truncatewords:20 }}</p>
-                    
-                    <div class="concern-card-footer">
-                        <span class="concern-date">Archived: {{ concern.archived_at|date:"M d, Y" }}</span>
+                        <span class="badge bg-secondary text-white">Archived</span>
                     </div>
                     
-                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                        <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-sm btn-primary">View</a>
-                        <form method="post" action="{% url 'concerns:unarchive' concern.pk %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline">Restore</button>
-                        </form>
-                        <form method="post" action="{% url 'concerns:permanent_delete' concern.pk %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Permanently delete? This cannot be undone!')">Delete Forever</button>
-                        </form>
+                    <h5 class="fw-bold mb-2 text-dark">{{ concern.title }}</h5>
+                    <div class="text-secondary small mb-3 d-flex align-items-center gap-1">
+                        <i data-lucide="map-pin" class="icon-sm"></i> 
+                        {{ concern.location }}, {{ concern.barangay }}
+                    </div>
+                    
+                    <p class="text-secondary small mb-4">{{ concern.description|truncatewords:20 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-auto">
+                        <small class="text-tertiary">
+                            <i data-lucide="archive" class="icon-sm me-1"></i> {{ concern.archived_at|date:"M d, Y" }}
+                        </small>
+                        
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'concerns:detail' concern.pk %}" class="btn btn-sm btn-light text-primary" title="View details">
+                                <i data-lucide="eye" class="icon-sm"></i>
+                            </a>
+                            <a href="{% url 'concerns:unarchive' concern.pk %}" class="btn btn-sm btn-light text-success" title="Restore">
+                                <i data-lucide="rotate-ccw" class="icon-sm"></i>
+                            </a>
+                            <a href="{% url 'concerns:permanent_delete' concern.pk %}" class="btn btn-sm btn-light text-danger" title="Delete Forever">
+                                <i data-lucide="trash-2" class="icon-sm"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
-            {% endfor %}
+            </div>
         </div>
-    {% else %}
-        <div class="empty-state">
-            <p>No archived concerns found.</p>
-            <a href="{% url 'concerns:list' %}" class="btn btn-primary">View Active Concerns</a>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <i data-lucide="archive" class="text-secondary icon-xl"></i>
+            </div>
+            <h5 class="fw-bold text-secondary">No current archives</h5>
+            <p class="text-muted small">Archived concerns will appear here.</p>
         </div>
-    {% endif %}
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

@@ -1,27 +1,35 @@
 <!-- templates/pages/home.html -->
 {% extends 'base.html' %}
 
-{% block title %}Home - Barangay Concerns{% endblock %}
+{% block title %}Home - Barangay Connect{% endblock %}
 
 {% block content %}
-<div class="hero">
+<div class="hero fade-in">
     <div class="container hero-content">
         <h1 class="hero-title">Community Concerns Platform</h1>
         <p class="hero-subtitle">
-            Report and track community issues in your barangay. 
+            Report and track community issues in your barangay.
             Help us build a better, safer, and more responsive community.
         </p>
-        
+
         {% if user.is_authenticated %}
-            <div class="hero-actions">
-                <a href="{% url 'concerns:list' %}" class="btn btn-primary btn-lg">Go to Dashboard</a>
-                <a href="{% url 'concerns:create' %}" class="btn btn-outline btn-lg">Report Concern</a>
-            </div>
+        <div class="hero-actions">
+            <a href="{% url 'concerns:list' %}" class="btn btn-primary btn-lg">
+                <i data-lucide="layout-dashboard" class="icon-md"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'concerns:create' %}" class="btn btn-outline btn-lg">
+                <i data-lucide="plus-circle" class="icon-md"></i> Report Concern
+            </a>
+        </div>
         {% else %}
-            <div class="hero-actions">
-                <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">Get Started</a>
-                <a href="{% url 'security_management:login' %}" class="btn btn-outline btn-lg">Login</a>
-            </div>
+        <div class="hero-actions">
+            <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">
+                <i data-lucide="user-plus" class="icon-md"></i> Get Started
+            </a>
+            <a href="{% url 'security_management:login' %}" class="btn btn-outline btn-lg">
+                <i data-lucide="log-in" class="icon-md"></i> Login
+            </a>
+        </div>
         {% endif %}
     </div>
 </div>
@@ -29,22 +37,29 @@
 <section class="features">
     <div class="container">
         <h2 class="section-title">How It Works</h2>
-        
+
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📝</div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <i data-lucide="edit-3"></i>
+                </div>
                 <h3>Report Issues</h3>
-                <p>Easily report community concerns like floods, road damage, or safety issues with photos and detailed descriptions.</p>
+                <p>Easily report community concerns like floods, road damage, or safety issues with photos and detailed
+                    descriptions.</p>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">👁️</div>
+
+            <div class="feature-card fade-in" style="animation-delay: 100ms;">
+                <div class="feature-icon">
+                    <i data-lucide="eye"></i>
+                </div>
                 <h3>Track Progress</h3>
                 <p>Monitor the status of your reported concerns in real-time and receive updates from LGU officials.</p>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">✅</div>
+
+            <div class="feature-card fade-in" style="animation-delay: 200ms;">
+                <div class="feature-icon">
+                    <i data-lucide="check-circle"></i>
+                </div>
                 <h3>Get Results</h3>
                 <p>See how your concerns are being addressed and contribute to making your community better.</p>
             </div>
@@ -55,30 +70,30 @@
 <section class="categories">
     <div class="container">
         <h2 class="section-title">Report Categories</h2>
-        
+
         <div class="categories-grid">
-            <div class="category-item">
-                <span class="category-icon">🌊</span>
+            <div class="category-item fade-in">
+                <span class="category-icon"><i data-lucide="waves"></i></span>
                 <span class="category-name">Flooding</span>
             </div>
-            <div class="category-item">
-                <span class="category-icon">🛣️</span>
+            <div class="category-item fade-in" style="animation-delay: 50ms;">
+                <span class="category-icon"><i data-lucide="cone"></i></span>
                 <span class="category-name">Road Infrastructure</span>
             </div>
-            <div class="category-item">
-                <span class="category-icon">🗑️</span>
+            <div class="category-item fade-in" style="animation-delay: 100ms;">
+                <span class="category-icon"><i data-lucide="trash-2"></i></span>
                 <span class="category-name">Waste Management</span>
             </div>
-            <div class="category-item">
-                <span class="category-icon">⚡</span>
+            <div class="category-item fade-in" style="animation-delay: 150ms;">
+                <span class="category-icon"><i data-lucide="zap"></i></span>
                 <span class="category-name">Electricity</span>
             </div>
-            <div class="category-item">
-                <span class="category-icon">💧</span>
+            <div class="category-item fade-in" style="animation-delay: 200ms;">
+                <span class="category-icon"><i data-lucide="droplet"></i></span>
                 <span class="category-name">Water Supply</span>
             </div>
-            <div class="category-item">
-                <span class="category-icon">🚨</span>
+            <div class="category-item fade-in" style="animation-delay: 250ms;">
+                <span class="category-icon"><i data-lucide="shield-alert"></i></span>
                 <span class="category-name">Public Safety</span>
             </div>
         </div>
@@ -90,7 +105,13 @@
         <h2>Ready to Make a Difference?</h2>
         <p>Join thousands of citizens working together to improve our communities.</p>
         {% if not user.is_authenticated %}
-        <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">Create Account</a>
+        <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">
+            <i data-lucide="rocket" class="icon-md"></i> Create Account
+        </a>
+        {% else %}
+        <a href="{% url 'concerns:create' %}" class="btn btn-primary btn-lg">
+            <i data-lucide="megaphone" class="icon-md"></i> Report a Concern
+        </a>
         {% endif %}
     </div>
 </section>

@@ -4,24 +4,37 @@
 
 {% block content %}
 <div class="container">
-    <div class="confirm-container">
-        <div class="confirm-card">
-            <h1 style="color: #ef4444;">⚠️ Permanent Deletion</h1>
-            <p style="color: #ef4444; font-weight: bold;">This action CANNOT be undone!</p>
-            <p>Are you sure you want to permanently delete this concern from the database?</p>
-            <div class="concern-preview" style="border-left-color: #ef4444;">
-                <h3>{{ concern.title }}</h3>
-                <p>{{ concern.description|truncatewords:30 }}</p>
-                <p><strong>Created:</strong> {{ concern.created_at|date:"F d, Y" }}</p>
-                <p><strong>Reporter:</strong> {{ concern.reporter.username }}</p>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you ABSOLUTELY sure? This CANNOT be undone!')">Yes, Delete Forever</button>
-                    <a href="{% url 'concerns:archive_list' %}" class="btn btn-outline">Cancel</a>
+    <div class="row justify-content-center py-5">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg text-center p-4 border-top border-5 border-danger">
+                <div class="mb-3">
+                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg" style="width: 72px; height: 72px;">
+                        <i data-lucide="skull" class="icon-xl"></i>
+                    </div>
                 </div>
-            </form>
+                
+                <h3 class="fw-bold mb-2 text-danger">Permanent Deletion</h3>
+                <div class="alert alert-danger font-monospace small py-2 mb-4">This action CANNOT be undone.</div>
+                
+                <p class="text-secondary mb-4">Are you sure you want to permanently scrub this concern from the database? All data including comments and history will be lost.</p>
+                
+                <div class="bg-light p-3 rounded-3 mb-4 text-start border border-danger border-opacity-25">
+                    <h6 class="fw-bold mb-1">{{ concern.title }}</h6>
+                    <p class="small text-secondary mb-0">Created: {{ concern.created_at|date:"M d, Y" }}</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger py-2 fw-bold shadow-sm">
+                            <i data-lucide="trash-2" class="icon-sm me-1"></i> Delete Forever
+                        </button>
+                        <a href="{% url 'concerns:archive_list' %}" class="btn btn-light text-secondary py-2 fw-bold">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

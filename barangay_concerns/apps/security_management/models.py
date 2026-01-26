@@ -11,6 +11,16 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True)
     barangay = models.CharField(max_length=100, blank=True)
     municipality = models.CharField(max_length=100, blank=True)
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    
+    # Geographic Profile
+    region = models.CharField(max_length=100, blank=True)
+    province = models.CharField(max_length=100, blank=True)
+    city = models.CharField(max_length=100, blank=True, help_text="City or Municipality")
+    
+    # Gamification & Identity
+    alias = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="Public display name")
+    points = models.IntegerField(default=0, help_text="Karma points")
     
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"

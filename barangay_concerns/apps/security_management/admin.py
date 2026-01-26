@@ -7,8 +7,8 @@ class CustomUserAdmin(UserAdmin):
     list_display = ['username', 'email', 'role', 'is_staff']
     list_filter = ['role', 'is_staff', 'is_active']
     fieldsets = UserAdmin.fieldsets + (
-        ('Additional Info', {'fields': ('role', 'phone_number', 'barangay', 'municipality')}),
+        ('Additional Info', {'fields': ('role', 'phone_number', 'region', 'province', 'city', 'municipality', 'barangay')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Additional Info', {'fields': ('role', 'phone_number', 'barangay', 'municipality')}),
+        ('Additional Info', {'fields': ('role', 'phone_number', 'region', 'province', 'city', 'municipality', 'barangay')}),
     )

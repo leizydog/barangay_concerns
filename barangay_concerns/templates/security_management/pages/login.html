@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - Barangay Connect{% endblock %}
+
+{% block content %}
+<div class="auth-container fade-in">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i data-lucide="log-in"></i>
+            </div>
+            <h1>Welcome Back</h1>
+            <p>Login to report and track community concerns</p>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="auth-error">
+                <i data-lucide="alert-circle" class="icon-sm"></i>
+                <span>Invalid username or password. Please try again.</span>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="id_username">
+                    <i data-lucide="user" class="icon-sm"></i> Username
+                </label>
+                <input type="text" name="username" id="id_username" class="form-control"
+                    placeholder="Enter your username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="id_password">
+                    <i data-lucide="lock" class="icon-sm"></i> Password
+                </label>
+                <input type="password" name="password" id="id_password" class="form-control"
+                    placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <i data-lucide="arrow-right" class="icon-sm"></i> Sign In
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{% url 'security_management:register' %}">Register here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
