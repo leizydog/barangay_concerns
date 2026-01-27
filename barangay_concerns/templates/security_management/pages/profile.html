@@ -107,11 +107,11 @@
                         <div class="input-wrapper">{{ form.province }}</div>
                     </div>
                     <div class="form-group">
-                        <label>City / Municipality</label>
+                        <label>City</label>
                         <div class="input-wrapper">{{ form.city }}</div>
                     </div>
                     <div class="form-group">
-                        <label>Municipality (Alt)</label>
+                        <label>Municipality</label>
                         <div class="input-wrapper">{{ form.municipality }}</div>
                     </div>
                     <div class="form-group full-width">
@@ -291,5 +291,16 @@ function previewProfileImage(input) {
         reader.readAsDataURL(file);
     }
 }
+
+// Set phone number field constraints
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.querySelector('[name="phone_number"]');
+    if (phoneInput) {
+        phoneInput.setAttribute('maxlength', '11');
+        phoneInput.setAttribute('placeholder', '09XXXXXXXXX');
+        phoneInput.setAttribute('pattern', '09[0-9]{9}');
+        phoneInput.setAttribute('title', 'Phone number must start with 09 and be 11 digits');
+    }
+});
 </script>
 {% endblock %}
