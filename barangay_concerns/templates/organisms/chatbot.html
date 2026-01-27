@@ -231,6 +231,27 @@
     [data-theme="dark"] #chatbot-input:focus {
         background: var(--bg-tertiary, #334155);
     }
+
+    /* Mobile Responsive - Center chatbot */
+    @media (max-width: 576px) {
+        .chatbot-container {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%) translateY(20px);
+            width: calc(100vw - 2rem);
+            max-width: 350px;
+            bottom: 5rem;
+        }
+        
+        .chatbot-container.active {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .chatbot-toggle {
+            right: 1rem;
+            bottom: 1rem;
+        }
+    }
 </style>
 
 <script>
