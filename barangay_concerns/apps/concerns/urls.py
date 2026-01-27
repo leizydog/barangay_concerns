@@ -17,5 +17,7 @@ urlpatterns = [
     path('<int:pk>/comment/', views.concern_add_comment_view, name='add_comment'),
     path('<int:pk>/unarchive/', views.concern_unarchive_view, name='unarchive'),
     path('<int:pk>/permanent-delete/', views.concern_permanent_delete_view, name='permanent_delete'),
+    path('<int:pk>/vote/', views.concern_vote_view, name='vote'),
+    path('<int:pk>/flag/', views.concern_flag_reporter_view, name='flag_reporter'),
     path('create/', views.concern_create_view, name='create'),
 ]

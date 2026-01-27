@@ -22,6 +22,10 @@ class User(AbstractUser):
     alias = models.CharField(max_length=50, blank=True, null=True, unique=True, help_text="Public display name")
     points = models.IntegerField(default=0, help_text="Karma points")
     
+    # Legal Action / Trolling Prevention
+    is_flagged_for_legal_action = models.BooleanField(default=False, help_text="Flagged by LGU for legal action due to trolling/misconduct")
+    legal_action_reason = models.TextField(blank=True, help_text="Reason for legal action")
+    
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
     

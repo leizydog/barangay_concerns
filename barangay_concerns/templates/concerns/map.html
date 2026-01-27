@@ -11,11 +11,11 @@
         min-height: 500px;
         width: 100%;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         z-index: 1;
         background: #f0f0f0;
     }
-    
+
     .map-sidebar {
         height: 100%;
         display: flex;
@@ -27,7 +27,7 @@
         background: white;
         padding: 1.5rem;
         border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         border: 1px solid #eee;
     }
 
@@ -37,7 +37,7 @@
         color: #555;
         margin-bottom: 0.5rem;
     }
-    
+
     .form-select {
         padding: 10px 12px;
         border: 1px solid #e1e1e1;
@@ -64,28 +64,56 @@
         justify-content: center;
         align-items: center;
         font-size: 24px;
-        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
         transition: transform 0.2s ease;
     }
-    
+
     .emergency-icon {
         background: white;
         border-radius: 50%;
         border: 2px solid red;
-        width: 100%; /* Fill the container */
+        width: 100%;
+        /* Fill the container */
         height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 16px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
-    
+
     .leaflet-control-layers {
         border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         border: none;
         padding: 10px;
+    }
+
+    /* Dark Mode Overrides for Map Page */
+    [data-theme="dark"] .filter-card {
+        background: var(--bg-card);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .text-dark {
+        color: var(--text-primary) !important;
+    }
+    
+    [data-theme="dark"] .bg-white {
+        background-color: var(--bg-tertiary) !important;
+    }
+    
+    [data-theme="dark"] .border-light {
+        border-color: var(--border-color) !important;
+    }
+
+    [data-theme="dark"] #mapSearchInput {
+        color: var(--text-primary);
+    }
+
+    [data-theme="dark"] .leaflet-control-layers {
+        background: var(--bg-card);
+        color: var(--text-primary);
     }
 </style>
 
@@ -98,46 +126,52 @@
                     <i data-lucide="map" class="icon-lg text-primary"></i> Concerns Map
                 </h2>
                 <div class="alert alert-soft-primary border-0 rounded-4 p-3 mb-0 text-sm">
-                     <div class="d-flex gap-2">
+                    <div class="d-flex gap-2">
                         <i data-lucide="info" class="flex-shrink-0 icon-sm mt-1"></i>
                         <span class="small text-muted">
                             Dynamic icons resize based on zoom level. Zoom in for details.
                         </span>
-                     </div>
+                    </div>
                 </div>
             </div>
 
             <div class="filter-card">
                 <!-- Search -->
                 <div class="mb-4">
-                    <label class="form-label small text-secondary text-uppercase fw-bold mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Find Location</label>
+                    <label class="form-label small text-secondary text-uppercase fw-bold mb-2"
+                        style="font-size: 0.7rem; letter-spacing: 0.5px;">Find Location</label>
                     <div class="input-group border rounded-3 overflow-hidden bg-white">
                         <span class="input-group-text bg-transparent border-0 ps-3 pe-2">
                             <i data-lucide="search" class="icon-sm text-secondary"></i>
                         </span>
-                        <input type="text" id="mapSearchInput" class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="Search city..." style="font-size: 0.9rem;">
-                        <button class="btn btn-primary border-0 m-1 rounded-2 px-3 align-self-center py-1" id="mapSearchBtn" style="height: 32px;">
+                        <input type="text" id="mapSearchInput"
+                            class="form-control border-0 shadow-none bg-transparent ps-1" placeholder="Search city..."
+                            style="font-size: 0.9rem;">
+                        <button class="btn btn-primary border-0 m-1 rounded-2 px-3 align-self-center py-1"
+                            id="mapSearchBtn" style="height: 32px;">
                             Go
                         </button>
                     </div>
                 </div>
-                
+
                 <hr class="border-light opacity-50 my-3">
-                <h6 class="mb-3 d-flex align-items-center gap-2 text-dark font-monospace text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px;">
+                <h6 class="mb-3 d-flex align-items-center gap-2 text-dark font-monospace text-uppercase"
+                    style="font-size: 0.75rem; letter-spacing: 1px;">
                     <i data-lucide="filter" class="icon-sm"></i> Filters
                 </h6>
-                
+
                 <div class="mb-3">
                     <label class="form-label small">Status</label>
                     <select id="statusFilter" class="form-select text-sm">
                         <option value="">Active Only (Default)</option>
                         <option value="ALL">Show All History</option>
                         <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
-                        <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                        <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>In Progress
+                        </option>
                         <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>Resolved</option>
                     </select>
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="form-label small">Category</label>
                     <select id="categoryFilter" class="form-select text-sm">
@@ -147,8 +181,9 @@
                         <option value="Safety" {% if category_filter == 'Safety' %}selected{% endif %}>Public Safety</option>
                     </select>
                 </div>
-                
-                <button onclick="window.location.reload()" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 btn-sm py-2">
+
+                <button onclick="window.location.reload()"
+                    class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 btn-sm py-2">
                     <i data-lucide="refresh-ccw" class="icon-sm"></i> Reset Map
                 </button>
             </div>
@@ -166,7 +201,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="{% static 'js/plugins/leaflet-heat.js' %}"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var map = L.map('map').setView([14.5995, 120.9842], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -176,46 +211,46 @@
         var concernsGroup = L.layerGroup().addTo(map);
         var emergencyGroup = L.layerGroup();
         var heatGroup = L.layerGroup();
-        
+
         // --- 1. DYNAMIC ICON SIZING ---
         // Function to calculate icon size based on Zoom
         // Zoom 18 -> 40px
         // Zoom 13 -> 24px
         // Zoom 5 -> 8px
         function getIconSizeForZoom(zoom) {
-             let base = 28;
-             if (zoom < 10) return 8;
-             if (zoom < 12) return 12;
-             if (zoom < 14) return 20;
-             if (zoom < 16) return 28;
-             return 36;
+            let base = 28;
+            if (zoom < 10) return 8;
+            if (zoom < 12) return 12;
+            if (zoom < 14) return 20;
+            if (zoom < 16) return 28;
+            return 36;
         }
 
         // We can't resize Leaflet markers easily in real-time without re-creating them OR using CSS transform.
         // Easiest reliable way: Re-generate icons when zoom ends if change is significant?
         // OR better: Rely on CSS and unique classes? 
         // Let's use CSS Classes updated on map zoom!
-        
+
         map.on('zoomend', updateIconStyles);
-        
+
         function updateIconStyles() {
             var z = map.getZoom();
             var size = getIconSizeForZoom(z);
             var anchor = size / 2;
-            
+
             // This is complex to update existing markers.
             // Simpler strategy: Just reload layer on large zoom changes? 
             // Better: Use a fixed set of markers but update DIV styles?
             // Leaflet divIcon doesn't auto-update style.
-            
+
             // Let's just create markers with current zoom size initially, and rely on refresh?
             // User says "heatmap still scales".
-            
+
             // Allow simplified logic:
             // Icons are fixed pixel size normally.
             // If user wants them "frozen to ground", they must shrink when zooming out.
             // I will use `L.circleMarker` for Concerns? No, they want Icons.
-            
+
             // I will use a simple "Hide if too small" logic (Cluster-ish layout).
             if (z < 12) {
                 if (map.hasLayer(concernsGroup)) map.removeLayer(concernsGroup);
@@ -231,7 +266,7 @@
 
         // Icons
         const icons = {
-            'FLOOD': '🌊', 'Road': '🚧', 'Safety': '🚨', 'Waste': '🗑️', 
+            'FLOOD': '🌊', 'Road': '🚧', 'Safety': '🚨', 'Waste': '🗑️',
             'Electricity': '⚡', 'Water': '💧', 'Other': '📌'
         };
 
@@ -243,13 +278,13 @@
                 iconAnchor: [12, 12]
             });
         }
-        
+
         function getEmergencyIcon(type) {
             let symbol = '📞';
             if (type === 'police') symbol = '👮';
             if (type === 'fire_station') symbol = '🚒';
             if (type === 'hospital' || type === 'clinic') symbol = '🏥';
-            
+
             return L.divIcon({
                 className: 'emergency-icon',
                 html: symbol,
@@ -259,26 +294,26 @@
         }
 
         const gradients = {
-            'FLOOD': {0.4: 'cyan', 0.8: 'blue', 1: 'darkblue'},
-            'Road': {0.4: 'yellow', 0.8: 'orange', 1: 'darkorange'},
-            'Safety': {0.4: 'red', 1: 'darkred'},
-            'default': {0.4: 'lime', 0.7: 'yellow', 1: 'red'}
+            'FLOOD': { 0.4: 'cyan', 0.8: 'blue', 1: 'darkblue' },
+            'Road': { 0.4: 'yellow', 0.8: 'orange', 1: 'darkorange' },
+            'Safety': { 0.4: 'red', 1: 'darkred' },
+            'default': { 0.4: 'lime', 0.7: 'yellow', 1: 'red' }
         };
 
         function loadConcerns() {
             var statusFilter = document.getElementById('statusFilter').value;
             var categoryFilter = document.getElementById('categoryFilter').value;
-            
+
             fetch("{% url 'concerns:map_data' %}?status=&category=" + categoryFilter)
                 .then(res => res.json())
                 .then(data => {
                     concernsGroup.clearLayers();
                     heatGroup.clearLayers();
-                    
+
                     if (data.concerns.length === 0) return;
 
                     let buckets = {};
-                    
+
                     data.concerns.forEach(c => {
                         var showMarker = false;
                         if (statusFilter === 'ALL') showMarker = true;
@@ -292,16 +327,16 @@
                             marker.bindPopup("<b>" + c.title + "</b><br>" + c.category_display + "<br>Status: " + c.status_display + "<br><a href='/concerns/" + c.id + "/'>View</a>");
                             concernsGroup.addLayer(marker);
                         }
-                        
+
                         let cat = c.category;
                         if (!buckets[cat]) buckets[cat] = [];
-                        buckets[cat].push([c.latitude, c.longitude, 0.2]); 
+                        buckets[cat].push([c.latitude, c.longitude, 0.2]);
                     });
 
                     if (typeof L.heatLayer === 'function') {
                         for (let cat in buckets) {
                             let grad = gradients[cat] || gradients['default'];
-                            
+
                             // HEATMAP FIX:
                             // scaleRadius: true means "Radius is in METERS if useLocalExtrema is false??"
                             // Actually, leaflet-heat documentation is sparse.
@@ -313,17 +348,17 @@
                             // Let's try explicit Zoom dependent sizing manual? No, too hard.
                             // Let's rely on scaleRadius: true but with SMALL radius (0.0004 degrees approx?).
                             // No, radius is just a number.
-                            
+
                             // Let's try scaleRadius: true, radius: 15.
                             // (If 60 was huge).
-                            
+
                             var heat = L.heatLayer(buckets[cat], {
                                 radius: 15,
                                 blur: 15,
                                 maxZoom: 16,
                                 gradient: grad,
                                 minOpacity: 0.1,
-                                scaleRadius: true, 
+                                scaleRadius: true,
                                 useLocalExtrema: false
                             });
                             heatGroup.addLayer(heat);
@@ -332,18 +367,63 @@
                 });
         }
 
-        var loadingOSM = false;
-        function loadOSMEmergencyUnits() {
-            if (loadingOSM) return;
-            if (!map.hasLayer(emergencyGroup)) return;
-            // Strict control: Don't load if zoom < 12 (Too zoomed out)
-            if (map.getZoom() < 12) {
-                emergencyGroup.clearLayers(); // Start clean
-                return;
+        var loadingUnits = false;
+        var loadedLocalUnits = false;
+        
+        function loadEmergencyUnits() {
+            // 1. Load Local DB Units (Once)
+            if (!loadedLocalUnits) {
+                fetch("{% url 'concerns:emergency_units_data' %}")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.units) return;
+                        
+                        data.units.forEach(u => {
+                            let icon = getEmergencyIcon(u.type.toLowerCase());
+                            if (u.type === 'BARANGAY') {
+                                icon = L.divIcon({
+                                    className: 'emergency-icon',
+                                    html: '🏛️',
+                                    iconSize: [28, 28],
+                                    iconAnchor: [14, 14]
+                                });
+                            }
+                            
+                            var marker = L.marker([u.lat, u.lng], {icon: icon});
+                            marker.isLocal = true; // Flag as local
+                            var content = `<b>${u.name}</b><br><small>${u.type_display}</small>`;
+                            if(u.contact) content += `<br>📞 ${u.contact}`;
+                            marker.bindPopup(content);
+                            emergencyGroup.addLayer(marker);
+                        });
+                        loadedLocalUnits = true;
+                        // After local loaded, try loading live for "rest of world"
+                        loadLiveOSMUnits(); 
+                    })
+                    .catch(e => console.log(e));
+            } else {
+                loadLiveOSMUnits();
             }
+        }
 
-            loadingOSM = true;
+        var loadingLive = false;
+        function loadLiveOSMUnits() {
+            if (loadingLive) return;
+            if (!map.hasLayer(emergencyGroup)) return;
+            // Only fetch live if zoomed in enough
+            if (map.getZoom() < 12) return;
+
+            loadingLive = true;
+            
+            // Clear only previously loaded live markers
+            emergencyGroup.eachLayer(function(layer) {
+                if (layer.isLive) {
+                    emergencyGroup.removeLayer(layer);
+                }
+            });
+
             var bounds = map.getBounds();
+            // Expanded query to include Barangays
             var query = `
                 [out:json][timeout:25];
                 (
@@ -351,27 +431,70 @@
                   node["amenity"="fire_station"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
                   node["amenity"="hospital"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
                   node["amenity"="clinic"](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                  node["name"~"Barangay",i](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+                  way["name"~"Barangay",i](${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
                 );
-                out body 30;
+                out center 40;
             `;
             
             fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query))
                 .then(res => res.json())
                 .then(data => {
-                    emergencyGroup.clearLayers();
                     if (!data.elements) return;
+                    
                     data.elements.forEach(el => {
-                        if (el.lat && el.lon) {
-                            var marker = L.marker([el.lat, el.lon], {icon: getEmergencyIcon(el.tags.amenity)});
-                            var content = `<b>${el.tags.name || el.tags.amenity}</b>`;
-                            if(el.tags.phone) content += `<br>📞 ${el.tags.phone}`;
+                        var lat = el.lat || el.center?.lat;
+                        var lon = el.lon || el.center?.lon;
+                        
+                        if (lat && lon) {
+                            // De-duplication: Check if close to any existing marker
+                            // Simple Euclidean distance check (~20 meters approx 0.0002 deg)
+                            var isDuplicate = false;
+                            emergencyGroup.eachLayer(layer => {
+                                var ll = layer.getLatLng();
+                                var dLat = Math.abs(ll.lat - lat);
+                                var dLng = Math.abs(ll.lng - lon);
+                                if (dLat < 0.0002 && dLng < 0.0002) {
+                                    isDuplicate = true;
+                                }
+                            });
+                            
+                            if (isDuplicate) return;
+
+                            // Determine type
+                            var type = 'police'; // default
+                            var tags = el.tags || {};
+                            var amenity = tags.amenity;
+                            var name = tags.name || '';
+                            
+                            if (amenity === 'fire_station') type = 'fire_station';
+                            else if (amenity === 'hospital' || amenity === 'clinic') type = 'hospital';
+                            else if (name.toLowerCase().includes('barangay')) type = 'barangay';
+
+                            let icon = getEmergencyIcon(type);
+                            if (type === 'barangay') {
+                                icon = L.divIcon({
+                                    className: 'emergency-icon',
+                                    html: '🏛️',
+                                    iconSize: [28, 28],
+                                    iconAnchor: [14, 14]
+                                });
+                            }
+                            
+                            var marker = L.marker([lat, lon], {icon: icon});
+                            marker.isLive = true;
+                            
+                            var content = `<b>${name || amenity}</b>`;
+                            if(tags.phone) content += `<br>📞 ${tags.phone}`;
+                            else content += `<br><small class="text-muted">No contact info via OpenStreetMap</small>`;
+                            
                             marker.bindPopup(content);
                             emergencyGroup.addLayer(marker);
                         }
                     });
                 })
                 .catch(e => console.log(e))
-                .finally(() => loadingOSM = false);
+                .finally(() => loadingLive = false);
         }
 
         var overlayMaps = {
@@ -383,43 +506,47 @@
 
         loadConcerns();
         emergencyGroup.addTo(map);
-        loadOSMEmergencyUnits();
-        
-        map.on('moveend', loadOSMEmergencyUnits);
-        map.on('zoomend', function() {
+        loadEmergencyUnits();
+
+        map.on('moveend', loadEmergencyUnits);
+        map.on('zoomend', function () {
             // Auto hide layers if zoomed out too much
             if (map.getZoom() < 12) {
-                 if (map.hasLayer(concernsGroup)) map.removeLayer(concernsGroup);
-                 if (map.hasLayer(emergencyGroup)) emergencyGroup.clearLayers();
+                if (map.hasLayer(concernsGroup)) map.removeLayer(concernsGroup);
+                if (map.hasLayer(emergencyGroup)) map.removeLayer(emergencyGroup); // Hide the layer, don't clear (caching)
             } else {
-                 if (!map.hasLayer(concernsGroup)) map.addLayer(concernsGroup);
-                 loadOSMEmergencyUnits();
+                if (!map.hasLayer(concernsGroup)) map.addLayer(concernsGroup);
+                if (!map.hasLayer(emergencyGroup)) map.addLayer(emergencyGroup);
+                loadEmergencyUnits();
             }
         });
 
         document.getElementById('statusFilter').addEventListener('change', loadConcerns);
         document.getElementById('categoryFilter').addEventListener('change', loadConcerns);
-        
+
         // --- SEARCH FUNCTIONALITY ---
         function searchLocation() {
             var query = document.getElementById('mapSearchInput').value;
             if (!query) return;
-            
+
             var btn = document.getElementById('mapSearchBtn');
             var originalContent = btn.innerHTML;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             btn.disabled = true;
+
+            var bounds = map.getBounds();
+            var viewbox = [bounds.getWest(), bounds.getNorth(), bounds.getEast(), bounds.getSouth()].join(',');
             
-            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&viewbox=${viewbox}&bounded=0`)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.length > 0) {
                         var lat = parseFloat(data[0].lat);
                         var lon = parseFloat(data[0].lon);
-                        map.flyTo([lat, lon], 15);
-                        
+                        map.flyTo([lat, lon], 16);
+
                         // Add temporary marker
-                         L.popup()
+                        L.popup()
                             .setLatLng([lat, lon])
                             .setContent('<div class="text-center p-2"><b>Here</b><br><span class="text-muted small">' + data[0].display_name.split(',')[0] + '</span></div>')
                             .openOn(map);
@@ -437,13 +564,13 @@
                     btn.disabled = false;
                 });
         }
-        
+
         document.getElementById('mapSearchBtn').addEventListener('click', searchLocation);
-        document.getElementById('mapSearchInput').addEventListener('keyup', function(e) {
+        document.getElementById('mapSearchInput').addEventListener('keyup', function (e) {
             if (e.key === 'Enter') searchLocation();
         });
 
-        setTimeout(function() { map.invalidateSize(); }, 500);
+        setTimeout(function () { map.invalidateSize(); }, 500);
     });
 </script>
 {% endblock %}

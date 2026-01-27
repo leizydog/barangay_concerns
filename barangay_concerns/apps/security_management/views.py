@@ -51,7 +51,7 @@ def logout_view(request):
 @login_required
 def profile_view(request):
     if request.method == 'POST':
-        form = UserProfileForm(request.POST, instance=request.user)
+        form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             # If alias is cleared, regenerate it? Or allow blank?
             # User wants: "set random display names... but also allow them to set their own"

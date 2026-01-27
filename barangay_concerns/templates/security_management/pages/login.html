@@ -28,17 +28,43 @@
                 <label for="id_username">
                     <i data-lucide="user" class="icon-sm"></i> Username
                 </label>
-                <input type="text" name="username" id="id_username" class="form-control"
-                    placeholder="Enter your username" required autofocus>
+                <div class="input-wrapper">
+                    <input type="text" name="username" id="id_username" class="form-control"
+                        placeholder="Enter your username" required autofocus style="width: 100%;">
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="id_password">
                     <i data-lucide="lock" class="icon-sm"></i> Password
                 </label>
-                <input type="password" name="password" id="id_password" class="form-control"
-                    placeholder="Enter your password" required>
+                <div class="input-wrapper">
+                    <input type="password" name="password" id="id_password" class="form-control"
+                        placeholder="Enter your password" required style="width: 100%; padding-right: 40px;">
+                    <button type="button" onclick="togglePasswordVisibility('id_password', this)" 
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-tertiary);">
+                        <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
             </div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    // Find the icon SVG whether it's an <i> tag or <svg> replacemeent
+    let icon = btn.querySelector('i');
+    if (!icon) icon = btn.querySelector('svg');
+    
+    if (input.type === "password") {
+        input.type = "text";
+        if(icon) icon.setAttribute('data-lucide', 'eye-off');
+    } else {
+        input.type = "password";
+        if(icon) icon.setAttribute('data-lucide', 'eye');
+    }
+    lucide.createIcons();
+}
+</script>
 
             <button type="submit" class="btn btn-primary btn-block">
                 <i data-lucide="arrow-right" class="icon-sm"></i> Sign In
@@ -50,4 +76,25 @@
         </div>
     </div>
 </div>
+
+<style>
+    .auth-form .form-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .auth-form .form-control {
+        text-align: left;
+        max-width: 350px;
+    }
+
+    .auth-form .btn-block {
+        max-width: 350px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
 {% endblock %}

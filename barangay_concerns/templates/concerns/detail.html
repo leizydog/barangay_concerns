@@ -19,25 +19,55 @@
 
     <div class="page-header" style="margin-bottom: 1.5rem;">
         <div>
-            <h1 style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 800;">
+            <h1
+                style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 800;">
                 {{ concern.title }}
-                <span class="badge badge-status-{{ concern.status|lower }}" style="font-size: 0.5em; vertical-align: middle;">{{ concern.get_status_display }}</span>
-                <span class="badge badge-{{ concern.category|lower }}" style="font-size: 0.5em; vertical-align: middle;">{{ concern.get_category_display }}</span>
+                <span class="badge badge-status-{{ concern.status|lower }}"
+                    style="font-size: 0.5em; vertical-align: middle;">{{ concern.get_status_display }}</span>
+                <span class="badge badge-{{ concern.category|lower }}"
+                    style="font-size: 0.5em; vertical-align: middle;">{{ concern.get_category_display }}</span>
             </h1>
             <p style="display: flex; align-items: center; gap: 1.5rem; color: var(--text-tertiary); font-size: 0.95rem; margin: 0;">
-                <span style="display: flex; align-items: center; gap: 0.4rem;">📅 {{ concern.created_at|date:"M d, Y" }}</span>
-                <span style="display: flex; align-items: center; gap: 0.4rem;">👤 <strong>{% if concern.is_anonymous %}Anonymous{% else %}{{ concern.reporter.alias|default:concern.reporter.username }}{% endif %}</strong></span>
-                <span style="display: flex; align-items: center; gap: 0.4rem;">📍 {{ concern.barangay }}</span>
+                <span style="display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="calendar" class="icon-sm"></i> {{ concern.created_at|date:"M d, Y" }}</span>
+                <span style="display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="user" class="icon-sm"></i> <strong>{% if concern.is_anonymous %}Anonymous{% else %}{{ concern.reporter.alias|default:concern.reporter.username }}{% endif %}</strong></span>
+                <span style="display: flex; align-items: center; gap: 0.4rem;"><i data-lucide="map-pin" class="icon-sm"></i> {{ concern.barangay }}</span>
             </p>
         </div>
+
+        <!-- Voting Widget -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1.25rem;">
+            {% if user == concern.reporter %}
+            <button class="btn btn-vote disabled" disabled style="border-radius: 12px; border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 0.6rem; opacity: 0.5; cursor: not-allowed; background: #f1f5f9;">
+                <i data-lucide="thumbs-up" style="width: 20px; height: 20px;"></i> <span class="count" style="font-weight: 800; font-size: 1.1rem;">{{ total_votes }}</span>
+            </button>
+            <button class="btn btn-vote disabled" disabled style="border-radius: 12px; border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 0.6rem; opacity: 0.5; cursor: not-allowed; background: #f1f5f9;">
+                 <i data-lucide="thumbs-down" style="width: 20px; height: 20px;"></i>
+            </button>
+            <span style="font-size: 0.85rem; color: var(--text-tertiary); font-style: italic;">(You cannot vote on your own report)</span>
+            {% else %}
+            <button class="btn btn-vote {% if user_vote == 1 %}active{% endif %}" onclick="vote('{{ concern.pk }}', 1, this)" style="border-radius: 12px; border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;">
+                <i data-lucide="thumbs-up" style="width: 20px; height: 20px;"></i> <span class="count" style="font-weight: 800; font-size: 1.1rem;">{{ total_votes }}</span>
+            </button>
+            <button class="btn btn-vote {% if user_vote == -1 %}active{% endif %}" onclick="vote('{{ concern.pk }}', -1, this)" style="border-radius: 12px; border: 1px solid var(--border-color); padding: 0.6rem 1.2rem; display: flex; align-items: center; gap: 0.6rem; transition: all 0.2s;">
+                 <i data-lucide="thumbs-down" style="width: 20px; height: 20px;"></i>
+            </button>
+            {% endif %}
+            {% if concern.reporter.points < 0 %}
+            <span class="badge badge-danger" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; margin-left: 0.5rem; display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 0.75rem;">
+                <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i> Low Reputation Reporter
+            </span>
+            {% endif %}
+        </div>
+
         <div style="display: flex; gap: 0.5rem;">
             {% if not concern.is_archived %}
-                {% if user.is_lgu or concern.reporter == user and concern.status == 'PENDING' and not concern.is_locked %}
-                <a href="{% url 'concerns:update' concern.pk %}" class="btn btn-sm btn-primary">Edit</a>
-                {% endif %}
-                {% if user.is_lgu %}
-                <a href="{% url 'concerns:delete' concern.pk %}" class="btn btn-sm" style="background: #f59e0b; color: white;">Archive</a>
-                {% endif %}
+            {% if user.is_lgu or concern.reporter == user and concern.status == 'PENDING' and not concern.is_locked %}
+            <a href="{% url 'concerns:update' concern.pk %}" class="btn btn-sm btn-primary">Edit</a>
+            {% endif %}
+            {% if user.is_lgu %}
+            <a href="{% url 'concerns:delete' concern.pk %}" class="btn btn-sm"
+                style="background: #f59e0b; color: white;">Archive</a>
+            {% endif %}
             {% endif %}
             <a href="{% url 'concerns:list' %}" class="btn btn-sm btn-outline">Back</a>
         </div>
@@ -47,11 +77,17 @@
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             <div class="card" style="padding: 0; overflow: hidden;">
                 <div style="padding: 1.5rem;">
-                    <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); border-bottom: 2px solid var(--bg-tertiary); padding-bottom: 0.5rem; width: fit-content;">Description</h3>
-                    <p style="color: var(--text-secondary); line-height: 1.7; font-size: 1.05rem; white-space: pre-wrap;">{{ concern.description }}</p>
+                    <h3
+                        style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary); border-bottom: 2px solid var(--bg-tertiary); padding-bottom: 0.5rem; width: fit-content;">
+                        Description</h3>
+                    <p
+                        style="color: var(--text-secondary); line-height: 1.7; font-size: 1.05rem; white-space: pre-wrap;">
+                        {{ concern.description }}</p>
                     {% if concern.image %}
-                    <div style="margin-top: 1.5rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
-                        <img src="{{ concern.image.url }}" alt="Concern Image" style="width: 100%; max-height: 500px; object-fit: contain; background: #f8fafc; display: block;">
+                    <div
+                        style="margin-top: 1.5rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <img src="{{ concern.image.url }}" alt="Concern Image"
+                            style="width: 100%; max-height: 500px; object-fit: contain; background: #f8fafc; display: block;">
                     </div>
                     {% endif %}
                 </div>
@@ -64,21 +100,32 @@
             {% endif %}
 
             <div class="card" style="padding: 0;" id="comments-section">
-                <div style="padding: 1rem 1.5rem; background: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
+                <div
+                    style="padding: 1rem 1.5rem; background: var(--bg-primary); border-bottom: 1px solid var(--border-color);">
                     <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700;">💬 Comments ({{ comments|length }})</h3>
                 </div>
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                         {% for comment in comments %}
                         <div style="display: flex; gap: 1rem;">
-                            <div style="width: 36px; height: 36px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; flex-shrink: 0; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">{{ comment.author.alias|first|default:comment.author.username|first }}</div>
+                            {% if comment.author.profile_image %}
+                            <img src="{{ comment.author.profile_image.url }}" alt="{{ comment.author.alias|default:comment.author.username }}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                            {% else %}
+                            <div style="width: 36px; height: 36px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #64748b; flex-shrink: 0; font-size: 0.85rem; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                {{ comment.author.alias|default:comment.author.username|first }}
+                            </div>
+                            {% endif %}
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.35rem;">
                                     <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-primary);">{{ comment.author.alias|default:comment.author.username }}</span>
-                                    {% if comment.author.is_lgu %}<span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.65rem; padding: 0.15em 0.5em; border-radius: 4px; vertical-align: middle;">OFFICIAL</span>{% endif %}
+                                    {% if comment.author.is_lgu %}
+                                    <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.65rem; padding: 0.15em 0.5em; border-radius: 4px; vertical-align: middle;">OFFICIAL</span>
+                                    {% endif %}
                                     <span style="font-size: 0.8rem; color: var(--text-tertiary);">{{ comment.created_at|timesince }} ago</span>
                                 </div>
-                                <div style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; background: #f8fafc; padding: 0.85rem 1rem; border-radius: 0 12px 12px 12px; border: 1px solid var(--bg-tertiary);">{{ comment.content }}</div>
+                                <div style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; background: #f8fafc; padding: 0.85rem 1rem; border-radius: 0 12px 12px 12px; border: 1px solid var(--bg-tertiary);">
+                                    {{ comment.content }}
+                                </div>
                             </div>
                         </div>
                         {% empty %}
@@ -95,16 +142,22 @@
                     <form method="post" action="{% url 'concerns:add_comment' concern.pk %}">
                         {% csrf_token %}
                         <div style="position: relative;">
-                            <textarea name="content" class="form-input" rows="3" placeholder="Write a comment..." required style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; resize: vertical; min-height: 80px;"></textarea>
+                            <textarea name="content" class="form-input" rows="3" placeholder="Write a comment..."
+                                required
+                                style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; resize: vertical; min-height: 80px;"></textarea>
                         </div>
                         <div style="text-align: right; margin-top: 0.75rem;">
-                            <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-weight: 600;">Post Comment</button>
+                            <button type="submit" class="btn btn-primary"
+                                style="padding: 0.6rem 1.5rem; font-weight: 600;">Post Comment</button>
                         </div>
                     </form>
                     {% else %}
-                    <div style="text-align: center; padding: 1.5rem 1rem; background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 2px dashed var(--primary); border-radius: 12px;">
+                    <div
+                        style="text-align: center; padding: 1.5rem 1rem; background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 2px dashed var(--primary); border-radius: 12px;">
                         <p style="margin: 0; font-size: 1.1rem; color: var(--text-primary); font-weight: 500;">
-                            🔐 Please <a href="{% url 'security_management:login' %}?next={{ request.path }}" style="font-weight: 700; color: var(--primary); text-decoration: underline;">log in</a> to participate in the discussion.
+                            🔐 Please <a href="{% url 'security_management:login' %}?next={{ request.path }}"
+                                style="font-weight: 700; color: var(--primary); text-decoration: underline;">log in</a>
+                            to participate in the discussion.
                         </p>
                     </div>
                     {% endif %}
@@ -115,8 +168,12 @@
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
             {% if user.is_lgu and not concern.is_archived %}
             <div class="card" style="border: 2px solid var(--primary); padding: 0; overflow: hidden;">
-                <div style="background: rgba(37, 99, 235, 0.08); padding: 1rem 1.25rem; border-bottom: 1px solid rgba(37, 99, 235, 0.15);">
-                    <h3 style="color: var(--primary); font-size: 1rem; margin: 0; font-weight: 700;">🛠️ Admin Controls</h3>
+                <div
+                    style="background: rgba(37, 99, 235, 0.08); padding: 1rem 1.25rem; border-bottom: 1px solid rgba(37, 99, 235, 0.15); display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="settings" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                    <h3 style="color: var(--primary); font-size: 1rem; margin: 0; font-weight: 700;">Admin Controls
+                    </h3>
+                </div>
                 </div>
                 <div style="padding: 1.25rem;">
                     <form method="post" action="{% url 'concerns:update_status' concern.pk %}">
@@ -125,10 +182,10 @@
                             <div>
                                 <label style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.4rem; display: block;">Status</label>
                                 <select name="status" class="form-input" style="padding: 0.6rem; font-size: 0.95rem;" required>
-                                    <option value="PENDING" {% if concern.status == 'PENDING' %}selected{% endif %}>⏳ Pending Investigation</option>
-                                    <option value="IN_PROGRESS" {% if concern.status == 'IN_PROGRESS' %}selected{% endif %}>🔄 In Progress</option>
-                                    <option value="RESOLVED" {% if concern.status == 'RESOLVED' %}selected{% endif %}>✅ Resolved</option>
-                                    <option value="CLOSED" {% if concern.status == 'CLOSED' %}selected{% endif %}>🔒 Closed</option>
+                                    <option value="PENDING" {% if concern.status == 'PENDING' %}selected{% endif %}>Pending Investigation</option>
+                                    <option value="IN_PROGRESS" {% if concern.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                                    <option value="RESOLVED" {% if concern.status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                                    <option value="CLOSED" {% if concern.status == 'CLOSED' %}selected{% endif %}>Closed</option>
                                 </select>
                             </div>
                             <div>
@@ -142,7 +199,9 @@
                             </div>
                             <button type="submit" class="btn btn-primary" style="width: 100%; font-weight: 600; margin-top: 0.5rem;">Update Ticket</button>
                             {% if concern.status != 'RESOLVED' %}
-                            <button type="submit" name="quick_action" value="resolve" class="btn" style="width: 100%; background: #dcfce7; color: #166534; border: 1px solid #16a34a; font-weight: 600;">✅ Mark as Resolved</button>
+                            <button type="submit" name="quick_action" value="resolve" class="btn" style="width: 100%; background: #dcfce7; color: #166534; border: 1px solid #16a34a; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                                <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Mark as Resolved
+                            </button>
                             {% endif %}
                         </div>
                     </form>
@@ -151,8 +210,9 @@
             {% endif %}
 
             <div class="card" style="padding: 0; overflow: hidden;">
-                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid #eee; background: var(--bg-primary);">
-                    <h3 style="font-size: 1rem; margin: 0; font-weight: 700;">ℹ️ Details</h3>
+                <div style="padding: 1rem 1.25rem; border-bottom: 1px solid #eee; background: var(--bg-primary); display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+                    <h3 style="font-size: 1rem; margin: 0; font-weight: 700;">Details</h3>
                 </div>
                 <div style="padding: 1.25rem;">
                     <div style="margin-bottom: 1.5rem;">
@@ -176,13 +236,30 @@
                     </div>
 
                     <div>
-                        <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.5rem;">Reporter</span>
-                        <div style="background: var(--bg-primary); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem;">
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); display: block; margin-bottom: 0.5rem;">Reporter</span>
+                        <div
+                            style="background: var(--bg-primary); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem;">
                             <div style="font-size: 1.2rem;">{% if concern.is_anonymous %}👻{% else %}👤{% endif %}</div>
                             <div>
                                 <div style="font-weight: 600; font-size: 0.95rem;">{% if concern.is_anonymous %}Anonymous{% else %}{{ concern.reporter.alias|default:concern.reporter.username }}{% endif %}</div>
                                 <div style="font-size: 0.8rem; color: var(--text-tertiary);">Report Author</div>
                             </div>
+                            {% if user.is_lgu and not concern.is_anonymous and not concern.reporter.is_flagged_for_legal_action %}
+                            <form method="post" action="{% url 'concerns:flag_reporter' concern.pk %}"
+                                onsubmit="return confirm('Are you sure you want to flag this user for legal action? This is a serious action.');"
+                                style="margin-left: auto;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm"
+                                    style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.75rem; padding: 0.3rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;">
+                                    <i data-lucide="flag" style="width: 14px; height: 14px;"></i> Flag for Legal Action
+                                </button>
+                            </form>
+                            {% elif concern.reporter.is_flagged_for_legal_action %}
+                            <span class="badge badge-danger"
+                                style="margin-left: auto; background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; display: flex; align-items: center; gap: 0.4rem;">
+                                <i data-lucide="flag" style="width: 14px; height: 14px;"></i> Flagged for Legal Action</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -206,27 +283,112 @@
 {% endif %}
 
 <style>
-    .concern-detail-grid { 
-        display: grid; 
-        grid-template-columns: 2fr 1fr; 
-        gap: 1.5rem; 
+    .concern-detail-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
         align-items: start;
     }
-    @media (max-width: 1024px) { 
-        .concern-detail-grid { 
-            grid-template-columns: 1fr; 
-        } 
+
+    @media (max-width: 1024px) {
+        .concern-detail-grid {
+            grid-template-columns: 1fr;
+        }
     }
-    .concern-detail-grid > div:first-child {
+
+    .concern-detail-grid>div:first-child {
         min-width: 0;
     }
+
     #comments-section {
         display: flex;
         flex-direction: column;
     }
-    .badge-status-pending { background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; }
-    .badge-status-in_progress { background: #dbeafe; color: #2563eb; border: 1px solid #93c5fd; }
-    .badge-status-resolved { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; }
-    .badge-status-closed { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+    .badge-status-pending {
+        background: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fcd34d;
+    }
+
+    .badge-status-in_progress {
+        background: #dbeafe;
+        color: #2563eb;
+        border: 1px solid #93c5fd;
+    }
+
+    .badge-status-resolved {
+        background: #d1fae5;
+        color: #059669;
+        border: 1px solid #6ee7b7;
+    }
+
+    .badge-status-closed {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #cbd5e1;
+    }
+
+    .btn-vote.active {
+        background-color: var(--primary-light, #e0e7ff);
+        color: var(--primary, #4f46e5);
+        border-color: var(--primary, #4f46e5) !important;
+        font-weight: bold;
+    }
+
+    .btn-vote:hover {
+        background-color: #f8fafc;
+        border-color: #94a3b8 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
 </style>
+
+<script>
+    function vote(concernId, value, btn) {
+        fetch(`/concerns/${concernId}/vote/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `value=${value}`
+        })
+            .then(response => {
+                if (response.status === 403 || response.status === 401) {
+                    window.location.href = "{% url 'security_management:login' %}?next={{ request.path }}";
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && (data.status === 'voted' || data.status === 'changed' || data.status === 'removed')) {
+                    // Update UI
+                    const container = btn.parentElement;
+                    const buttons = container.querySelectorAll('.btn-vote');
+
+                    // Allow backend to handle logic, we just reflect active state logic visually if needed
+                    // But simplest is to trust reload or just toggle class based on what we clicked
+                    // Actually, better to just reload or update numbers?
+                    // "Modern" app updates count dynamically.
+
+                    // Remove active from all
+                    buttons.forEach(b => b.classList.remove('active'));
+
+                    // If it wasn't removed, add active
+                    if (data.status !== 'removed') {
+                        if (value === 1) buttons[0].classList.add('active');
+                        if (value === -1) buttons[1].classList.add('active');
+                    }
+
+                    // Update count text
+                    const countSpan = buttons[0].querySelector('.count');
+                    countSpan.textContent = data.points;
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
 {% endblock %}

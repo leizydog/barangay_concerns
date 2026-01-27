@@ -2,10 +2,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
 from django.http import JsonResponse
-from .models import Concern, Comment, EmergencyUnit
+from .models import Concern, Comment, EmergencyUnit, Vote
 from .forms import ConcernForm, ConcernUpdateForm, CommentForm
 from .forms import ConcernForm, ConcernUpdateForm, CommentForm
 from .utils import generate_random_alias
@@ -166,6 +167,17 @@ def concern_detail_view(request, pk):
     # Get comments
     comments = concern.comments.all()
     comment_form = CommentForm()
+
+    # Calculate votes
+    from django.db.models import Sum
+    total_votes = concern.votes.aggregate(total=Sum('value'))['total'] or 0
+    
+    user_vote = 0
+    if request.user.is_authenticated:
+        vote_obj = concern.votes.filter(voter=request.user).first()
+        if vote_obj:
+            user_vote = vote_obj.value
+
     
     context = {
         'concern': concern,
@@ -181,7 +193,10 @@ def concern_detail_view(request, pk):
         'is_priority_low': concern.priority == 'LOW',
         'is_priority_medium': concern.priority == 'MEDIUM',
         'is_priority_high': concern.priority == 'HIGH',
+        'is_priority_high': concern.priority == 'HIGH',
         'is_priority_urgent': concern.priority == 'URGENT',
+        'total_votes': total_votes,
+        'user_vote': user_vote,
     }
     return render(request, 'concerns/detail.html', context)
 
@@ -449,3 +464,106 @@ def concern_update_status_view(request, pk):
     return redirect('concerns:detail', pk=pk)
 
 
+@login_required
+def concern_vote_view(request, pk):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST request required'}, status=405)
+        
+    concern = get_object_or_404(Concern, pk=pk)
+    
+    # Prevent self-voting
+    if concern.reporter == request.user:
+        return JsonResponse({'error': 'You cannot vote on your own report.'}, status=403)
+        
+    vote_val = int(request.POST.get('value', 0))
+    
+    if vote_val not in [1, -1]:
+        return JsonResponse({'error': 'Invalid vote value'}, status=400)
+        
+    vote, created = Vote.objects.get_or_create(
+        voter=request.user,
+        concern=concern,
+        defaults={'value': vote_val}
+    )
+    
+    # If vote exists, check if user is changing their vote or toggling off
+    if not created:
+        if vote.value == vote_val:
+            # Toggle off (remove vote)
+            vote.delete()
+            # Revert points for reporter
+            if concern.reporter:
+                concern.reporter.points = models.F('points') - vote_val
+                concern.reporter.save(update_fields=['points'])
+            
+            # Re-fetch for updated count
+            concern.refresh_from_db()
+            
+            return JsonResponse({
+                'status': 'removed',
+                'points': concern.votes.aggregate(total=models.Sum('value'))['total'] or 0
+            })
+        else:
+            # Change vote (e.g., +1 to -1)
+            # Update reporter points: remove old value, add new value
+            if concern.reporter:
+                # e.g. was +1, now -1. Change is -2.
+                # was -1, now +1. Change is +2.
+                change = vote_val - vote.value
+                concern.reporter.points = models.F('points') + change
+                concern.reporter.save(update_fields=['points'])
+                
+            vote.value = vote_val
+            vote.save()
+            return JsonResponse({
+                'status': 'changed',
+                'points': concern.votes.aggregate(total=models.Sum('value'))['total'] or 0
+            })
+            
+    # New vote
+    if concern.reporter:
+        concern.reporter.points = models.F('points') + vote_val
+        concern.reporter.save(update_fields=['points'])
+        
+        # Karma Moderation Check (Refresh to get actual value)
+        concern.reporter.refresh_from_db()
+        current_points = concern.reporter.points
+        
+        # BAN THRESHOLD: -10
+        if current_points <= -10 and concern.reporter.is_active:
+            concern.reporter.is_active = False
+            concern.reporter.save(update_fields=['is_active'])
+            # We can't log them out directly here easily as it's an AJAX request initiated by another user
+            # But they will be blocked on next request
+            print(f"User {concern.reporter.username} blocked due to low karma ({current_points})")
+            
+        # WARNING THRESHOLD: -5
+        elif current_points <= -5 and current_points > -10:
+             # In a real app, send a notification. For now, we just acknowledge logic is hit.
+             pass
+        
+    return JsonResponse({
+        'status': 'voted',
+        'points': concern.votes.aggregate(total=models.Sum('value'))['total'] or 0
+    })
+
+@login_required
+def concern_flag_reporter_view(request, pk):
+    if not request.user.is_lgu():
+        messages.error(request, 'Only LGU staff can flag users.')
+        return redirect('concerns:detail', pk=pk)
+        
+    concern = get_object_or_404(Concern, pk=pk)
+    
+    if not concern.reporter:
+        messages.error(request, 'Cannot flag anonymous or missing reporter.')
+        return redirect('concerns:detail', pk=pk)
+        
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        concern.reporter.is_flagged_for_legal_action = True
+        concern.reporter.legal_action_reason = reason
+        concern.reporter.save()
+        messages.success(request, f'User {concern.reporter.username} flagged for legal action.')
+        
+    return redirect('concerns:detail', pk=pk)

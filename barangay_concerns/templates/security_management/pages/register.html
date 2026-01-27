@@ -28,7 +28,9 @@
                 <label for="id_username">
                     <i data-lucide="user" class="icon-sm"></i> Username
                 </label>
-                {{ form.username }}
+                <div class="input-wrapper">
+                    {{ form.username }}
+                </div>
                 {% if form.username.errors %}
                 <span class="form-error">{{ form.username.errors.0 }}</span>
                 {% endif %}
@@ -38,7 +40,9 @@
                 <label for="id_email">
                     <i data-lucide="mail" class="icon-sm"></i> Email
                 </label>
-                {{ form.email }}
+                <div class="input-wrapper">
+                    {{ form.email }}
+                </div>
                 {% if form.email.errors %}
                 <span class="form-error">{{ form.email.errors.0 }}</span>
                 {% endif %}
@@ -48,7 +52,13 @@
                 <label for="id_password1">
                     <i data-lucide="lock" class="icon-sm"></i> Password
                 </label>
-                {{ form.password1 }}
+                <div class="input-wrapper">
+                    {{ form.password1 }}
+                    <button type="button" onclick="togglePasswordVisibility('id_password1', this)" 
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-tertiary);">
+                        <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
                 {% if form.password1.errors %}
                 <span class="form-error">{{ form.password1.errors.0 }}</span>
                 {% endif %}
@@ -58,11 +68,36 @@
                 <label for="id_password2">
                     <i data-lucide="lock" class="icon-sm"></i> Confirm Password
                 </label>
-                {{ form.password2 }}
+                <div class="input-wrapper">
+                    {{ form.password2 }}
+                    <button type="button" onclick="togglePasswordVisibility('id_password2', this)" 
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-tertiary);">
+                        <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
                 {% if form.password2.errors %}
                 <span class="form-error">{{ form.password2.errors.0 }}</span>
                 {% endif %}
             </div>
+
+<script>
+function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    // Find the icon SVG whether it's an <i> tag or <svg> replacemeent
+    let icon = btn.querySelector('i');
+    if (!icon) icon = btn.querySelector('svg');
+    
+    if (input.type === "password") {
+        input.type = "text";
+        if(icon) icon.setAttribute('data-lucide', 'eye-off');
+    } else {
+        input.type = "password";
+        if(icon) icon.setAttribute('data-lucide', 'eye');
+    }
+    // Re-run lucide to replace the <i> tag with the new svg
+    lucide.createIcons();
+}
+</script>
 
             <button type="submit" class="btn btn-primary btn-block">
                 <i data-lucide="check" class="icon-sm"></i> Create Account
@@ -74,4 +109,30 @@
         </div>
     </div>
 </div>
+
+<style>
+    .auth-form .form-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .auth-form input,
+    .auth-form select,
+    .auth-form .form-control,
+    .auth-form .form-input {
+        text-align: left;
+        max-width: 350px;
+        width: 100%;
+        display: block;
+    }
+
+    .auth-form .btn-block {
+        max-width: 350px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
 {% endblock %}

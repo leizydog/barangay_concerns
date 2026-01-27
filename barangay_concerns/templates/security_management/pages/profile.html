@@ -1,96 +1,295 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}My Profile - Barangay Concerns{% endblock %}
+{% block title %}My Profile - Barangay Connect{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center py-4">
-    <div class="col-md-7 col-lg-6">
-        <div class="card border-0 shadow-lg fade-in">
-            <!-- Header Background / Optional -->
-            <div class="card-body p-4 pt-5 position-relative">
+<div class="fade-in">
+    <div class="page-header" style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; margin-bottom: 0.5rem;"><i data-lucide="user-circle" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 0.5rem; color: var(--primary);"></i> My Profile</h1>
+        <p class="page-subtitle">Manage your account settings and preferences</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="profile-grid">
+        {% csrf_token %}
+        
+        <!-- Sidebar: Identity & Stats -->
+        <div class="profile-sidebar">
+            <div class="card" style="padding: 2rem; text-align: center; align-items: center;">
+                <div class="profile-avatar-wrapper">
+                    {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="Profile" class="profile-avatar">
+                    {% else %}
+                    <div class="profile-avatar-placeholder">
+                        <span style="font-size: 3rem; font-weight: 700; color: var(--primary);">{{ user.username|make_list|first|upper }}</span>
+                    </div>
+                    {% endif %}
+                    <label for="id_profile_image" class="avatar-upload-btn" title="Change Image">
+                        <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+                    </label>
+                </div>
+                <!-- File input with accessible styling -->
+                <input type="file" name="profile_image" id="id_profile_image" accept="image/*" 
+                    style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;"
+                    onchange="previewProfileImage(this)">
                 
-                <div class="text-center mb-4">
-                    <div class="position-relative d-inline-block">
-                        <div class="rounded-circle overflow-hidden border border-4 border-white shadow-sm" style="width: 120px; height: 120px; background: #eff6ff;">
-                            {% if user.profile_image %}
-                                <img src="{{ user.profile_image.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                            {% else %}
-                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary bg-light" style="font-size: 3rem; font-weight: bold;">
-                                    {{ user.username|first|upper }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm border" style="transform: translate(10%, 10%);">
-                            <i data-lucide="camera" class="icon-sm text-secondary"></i>
-                        </div>
-                    </div>
-                    <h2 class="fw-bold mt-3 mb-1">{{ user.get_full_name|default:user.username }}</h2>
-                    <p class="text-secondary mb-0">@{{ user.alias|default:user.username }}</p>
+                <p id="file-name-display" style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: 0.5rem; display: none;"></p>
+
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 1rem 0 0.25rem;">{{ user.alias|default:user.username }}</h2>
+                <p style="color: var(--text-tertiary); font-size: 0.9rem; margin-bottom: 1.5rem;">@{{ user.username }}</p>
+                
+                <div class="karma-badge {% if user.points < 0 %}negative{% endif %}">
+                    <span class="karma-value">{{ user.points }}</span>
+                    <span class="karma-label">Karma Points</span>
                 </div>
-
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">{{ user.points|default:0 }}</span>
-                        <div class="stat-label">Karma Points</div>
-                    </div>
-                    <div class="d-none d-sm-block" style="width: 1px; height: 40px; background: #e2e8f0;"></div>
-                    <div class="stat-item">
-                        <span class="stat-value d-flex align-items-center justify-content-center gap-1">
-                            <i data-lucide="shield" class="icon-md text-primary"></i>
-                        </span>
-                        <div class="stat-label">{{ user.get_role_display }}</div>
-                    </div>
+                
+                <div style="margin-top: 2rem; width: 100%; text-align: left;">
+                     <div class="stat-item">
+                        <i data-lucide="map-pin" class="icon-sm"></i>
+                        <span>{{ user.barangay|default:"No Location Set" }}</span>
+                     </div>
+                     <div class="stat-item">
+                        <i data-lucide="shield" class="icon-sm"></i>
+                        <span>{{ user.get_role_display }}</span>
+                     </div>
                 </div>
-
-                <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-3">
-                    {% csrf_token %}
-
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger d-flex gap-2 align-items-center">
-                        <i data-lucide="alert-circle" class="icon-sm"></i>
-                        <div>
-                            {% for error in form.non_field_errors %}
-                                {{ error }}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% for field in form %}
-                    
-                    {% if field.name == 'region' %}
-                    <div class="mt-4 mb-3 pb-2 border-bottom">
-                        <h5 class="fw-bold text-primary mb-1">Location Settings</h5>
-                        <p class="text-secondary small mb-0">Set your default community location to filter concerns.</p>
-                    </div>
-                    {% endif %}
-
-                    <div class="form-group">
-                        <label for="{{ field.id_for_label }}" class="form-label">
-                            {{ field.label }}
-                        </label>
-                        {{ field }}
-                        {% if field.help_text %}
-                        <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
-                        {% endif %}
-                        {% if field.errors %}
-                        <div class="form-error">
-                            {% for error in field.errors %}
-                            {{ error }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-
-                    <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
-                            <i data-lucide="save" class="icon-sm me-1"></i> Update Profile
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
-    </div>
+
+        <!-- Main Content: Edit Form -->
+        <div class="profile-main">
+            <div class="card" style="padding: 2rem;">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="settings" class="icon-md"></i> Account Details
+                </h3>
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Alias (Display Name)</label>
+                        <div class="input-wrapper">
+                            {{ form.alias }}
+                        </div>
+                        <p class="form-text">{{ form.alias.help_text }}</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <div class="input-wrapper">{{ form.first_name }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <div class="input-wrapper">{{ form.last_name }}</div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Phone Number</label>
+                        <div class="input-wrapper">{{ form.phone_number }}</div>
+                    </div>
+                </div>
+
+                <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="map" class="icon-md"></i> Location Settings
+                </h3>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    Set your default community location to filter concerns.
+                </p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Region</label>
+                        <div class="input-wrapper">{{ form.region }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Province</label>
+                        <div class="input-wrapper">{{ form.province }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>City / Municipality</label>
+                        <div class="input-wrapper">{{ form.city }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Municipality (Alt)</label>
+                        <div class="input-wrapper">{{ form.municipality }}</div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Barangay</label>
+                        <div class="input-wrapper">{{ form.barangay }}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2.5rem; display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                        <i data-lucide="save"></i> Update Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .profile-avatar-wrapper {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid white;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .profile-avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--primary);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 2px solid white;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s;
+    }
+
+    .avatar-upload-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .karma-badge {
+        background: #ecfdf5;
+        border: 1px solid #6ee7b7;
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .karma-badge.negative {
+        background: #fef2f2;
+        border-color: #fecaca;
+    }
+
+    .karma-value {
+        display: block;
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--success);
+        line-height: 1;
+    }
+    
+    .karma-badge.negative .karma-value {
+        color: var(--danger);
+    }
+
+    .karma-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--text-secondary);
+        letter-spacing: 0.05em;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .stat-item:last-child {
+        border-bottom: none;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    /* Override input wrapper for profile to be full width */
+    .profile-main .input-wrapper {
+        max-width: 100%;
+        margin: 0;
+    }
+
+    @media (max-width: 900px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .profile-sidebar {
+            order: -1;
+        }
+    }
+</style>
+
+<script>
+function previewProfileImage(input) {
+    const fileDisplay = document.getElementById('file-name-display');
+    const avatarImg = document.querySelector('.profile-avatar');
+    const avatarPlaceholder = document.querySelector('.profile-avatar-placeholder');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        fileDisplay.textContent = '📷 Selected: ' + file.name;
+        fileDisplay.style.display = 'block';
+        
+        // Preview the image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (avatarImg) {
+                avatarImg.src = e.target.result;
+            } else if (avatarPlaceholder) {
+                // Replace placeholder with img
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Profile Preview';
+                img.className = 'profile-avatar';
+                avatarPlaceholder.parentNode.replaceChild(img, avatarPlaceholder);
+            }
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
 {% endblock %}

@@ -12,6 +12,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom V2 Styles -->
     <link rel="stylesheet" href="{% static 'css/style_v2.css' %}">
+    <style>
+        /* Hide native password reveal button in Edge/Internet Explorer */
+        input::-ms-reveal,
+        input::-ms-clear {
+            display: none;
+        }
+    </style>
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -46,7 +53,13 @@
                 </a>
                 {% endif %}
 
-                <div style="width: 1px; height: 24px; background: #e2e8f0; margin: 0 0.25rem;"></div>
+                <!-- Theme Toggle -->
+                <button id="themeToggle" class="nav-link p-2" onclick="toggleTheme()" title="Toggle Dark Mode" style="background: none; border: none; cursor: pointer;">
+                    <i data-lucide="sun" id="theme-icon-sun" style="width: 20px; height: 20px;"></i>
+                    <i data-lucide="moon" id="theme-icon-moon" style="width: 20px; height: 20px; display: none;"></i>
+                </button>
+
+                <div style="width: 1px; height: 24px; background: var(--border-color, #e2e8f0); margin: 0 0.25rem;"></div>
 
                 <!-- Report button visible to everyone -->
                 <a href="{% url 'concerns:create' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm px-3" style="height: 38px;">
@@ -73,7 +86,7 @@
                             {% if user.profile_image %}
                                 <img src="{{ user.profile_image.url }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                             {% else %}
-                                {{ user.alias|first|default:user.username|first|upper }}
+                                {{ user.alias|default:user.username|first|upper }}
                             {% endif %}
                         </div>
                     </a>
@@ -158,6 +171,42 @@
         document.addEventListener('DOMContentLoaded', updateNotificationBadge);
         setInterval(updateNotificationBadge, 30000);
         {% endif %}
+    </script>
+    
+    <!-- Theme Toggle Script -->
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcons(newTheme);
+        }
+        
+        function updateThemeIcons(theme) {
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+            
+            if (theme === 'dark') {
+                if (sunIcon) sunIcon.style.display = 'none';
+                if (moonIcon) moonIcon.style.display = 'block';
+            } else {
+                if (sunIcon) sunIcon.style.display = 'block';
+                if (moonIcon) moonIcon.style.display = 'none';
+            }
+        }
+        
+        // Initialize theme on page load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            // Wait for DOM to be ready to update icons
+            document.addEventListener('DOMContentLoaded', function() {
+                updateThemeIcons(savedTheme);
+            });
+        })();
     </script>
     {% block extra_js %}{% endblock %}
 </body>

@@ -157,3 +157,20 @@ class EmergencyUnit(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.get_unit_type_display()})"
+
+class Vote(models.Model):
+    VOTE_CHOICES = (
+        (1, 'Upvote'),
+        (-1, 'Downvote'),
+    )
+    voter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='votes')
+    concern = models.ForeignKey(Concern, on_delete=models.CASCADE, related_name='votes')
+    value = models.IntegerField(choices=VOTE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('voter', 'concern')
+
+    def __str__(self):
+        return f"{self.voter.username} voted {self.value} on {self.concern.title}"
+
