@@ -1,0 +1,627 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Global Announcements - Barangay Connect{% endblock %}
+
+{% block content %}
+<style>
+    /* Announcements Page - Self-Contained Styles */
+    .announcements-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .page-header p {
+        margin: 0.25rem 0 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    
+    /* Create Card */
+    .create-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+    
+    .create-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .create-card-header .icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary), var(--accent, #8b5cf6));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .create-card-header h2 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    
+    .create-card-header span {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    /* Form Grid */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .form-group label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+    }
+    
+    .form-group select,
+    .form-group input,
+    .form-group textarea {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 10px;
+        font-size: 0.95rem;
+        background: var(--bg-body);
+        color: var(--text-primary);
+        transition: all 0.2s;
+    }
+    
+    .form-group select:focus,
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--text-tertiary);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    
+    .post-btn {
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent, #8b5cf6));
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+    
+    .post-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    }
+    
+    /* Preview Card */
+    .preview-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px dashed var(--border-color, #e2e8f0);
+    }
+    
+    .preview-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-tertiary);
+        margin-bottom: 0.75rem;
+    }
+    
+    .preview-banner {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .preview-banner.info { background: #e0e7ff; color: #3730a3; }
+    .preview-banner.warning { background: #fef3c7; color: #92400e; }
+    .preview-banner.danger { background: #fee2e2; color: #991b1b; }
+    .preview-banner.success { background: #dcfce7; color: #166534; }
+    
+    /* History Section */
+    .history-section {
+        background: var(--bg-card);
+        border-radius: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .history-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color, #e2e8f0);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .history-header h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    
+    .history-header .count {
+        background: var(--primary-light, #e0e7ff);
+        color: var(--primary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    /* Announcements List */
+    .announcement-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .announcement-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto auto;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color, #f1f5f9);
+        transition: background 0.2s;
+    }
+    
+    .announcement-item:hover {
+        background: rgba(79, 70, 229, 0.03);
+    }
+    
+    .announcement-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Status Indicator */
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    
+    .status-indicator.active {
+        background: var(--success);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        animation: pulse 2s infinite;
+    }
+    
+    .status-indicator.expired {
+        background: var(--text-tertiary);
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* Message Content */
+    .message-content {
+        min-width: 0;
+    }
+    
+    .message-content .text {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .message-content .meta {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+    }
+    
+    /* Type Badge */
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    
+    .type-badge.info { background: #e0e7ff; color: #3730a3; }
+    .type-badge.warning { background: #fef3c7; color: #92400e; }
+    .type-badge.danger { background: #fee2e2; color: #991b1b; }
+    .type-badge.success { background: #dcfce7; color: #166534; }
+    
+    /* Expiry Info */
+    .expiry-info {
+        text-align: right;
+        white-space: nowrap;
+    }
+    
+    .expiry-info .time {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    
+    .expiry-info .label {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+    }
+    
+    /* Action Button */
+    .expire-btn {
+        padding: 0.5rem 1rem;
+        background: #fee2e2;
+        color: #991b1b;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .expire-btn:hover {
+        background: #fecaca;
+    }
+    
+    .expired-label {
+        padding: 0.5rem 1rem;
+        background: var(--bg-body);
+        color: var(--text-tertiary);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state .icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h4 {
+        margin: 0 0 0.5rem;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    /* Dark Mode Overrides */
+    [data-theme="dark"] .create-card {
+        background: var(--bg-card);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .history-section {
+        background: var(--bg-card);
+    }
+    
+    [data-theme="dark"] .history-header,
+    [data-theme="dark"] .announcement-item {
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .form-group select,
+    [data-theme="dark"] .form-group input,
+    [data-theme="dark"] .form-group textarea {
+        background: var(--bg-tertiary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    [data-theme="dark"] .preview-banner.info { background: rgba(79, 70, 229, 0.2); color: #c7d2fe; }
+    [data-theme="dark"] .preview-banner.warning { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    [data-theme="dark"] .preview-banner.danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    [data-theme="dark"] .preview-banner.success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    
+    [data-theme="dark"] .type-badge.info { background: rgba(79, 70, 229, 0.2); color: #c7d2fe; }
+    [data-theme="dark"] .type-badge.warning { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+    [data-theme="dark"] .type-badge.danger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    [data-theme="dark"] .type-badge.success { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    
+    [data-theme="dark"] .expire-btn { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+    [data-theme="dark"] .expired-label { background: var(--bg-tertiary); color: var(--text-tertiary); }
+    
+    [data-theme="dark"] .history-header .count {
+        background: rgba(79, 70, 229, 0.2);
+        color: #c7d2fe;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .announcement-item {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        
+        .status-indicator {
+            display: none;
+        }
+        
+        .expiry-info {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="announcements-container fade-in">
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1>📢 Global Announcements</h1>
+            <p>Broadcast important alerts and news to all platform visitors</p>
+        </div>
+        <a href="{% url 'security_management:admin_users' %}" class="back-link">
+            ← Back to Users
+        </a>
+    </div>
+    
+    <!-- Create New Announcement -->
+    <div class="create-card">
+        <div class="create-card-header">
+            <div class="icon">
+                <i data-lucide="megaphone" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <h2>Create New Broadcast</h2>
+                <span>Your message will appear on the top banner across all pages</span>
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Type</label>
+                    <select name="type" id="announcementType" onchange="updatePreview()">
+                        <option value="INFO">ℹ️ General Info</option>
+                        <option value="WARNING">⚠️ Warning</option>
+                        <option value="DANGER">🚨 Emergency</option>
+                        <option value="SUCCESS">✅ Good News</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Duration</label>
+                    <select name="duration">
+                        <option value="1">1 Hour</option>
+                        <option value="6">6 Hours</option>
+                        <option value="24" selected>24 Hours</option>
+                        <option value="72">3 Days</option>
+                        <option value="168">1 Week</option>
+                    </select>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label>Message</label>
+                    <textarea name="message" id="announcementMessage" placeholder="Enter your announcement message..." 
+                              oninput="updatePreview()" required></textarea>
+                </div>
+            </div>
+            
+            <!-- Live Preview -->
+            <div class="preview-section">
+                <div class="preview-label">Live Preview</div>
+                <div class="preview-banner info" id="previewBanner">
+                    <span id="previewIcon">ℹ️</span>
+                    <span id="previewText">Your message will appear here...</span>
+                </div>
+            </div>
+            
+            <div class="form-actions" style="margin-top: 1.5rem;">
+                <span class="form-hint">
+                    <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+                    Visible on top banner of all pages. Keep it short.
+                </span>
+                <button type="submit" class="post-btn">
+                    <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                    Post Broadcast
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Broadcast History -->
+    <div class="history-section">
+        <div class="history-header">
+            <h3>Broadcast History</h3>
+            <span class="count">{{ announcements.count }} total</span>
+        </div>
+        
+        {% if announcements %}
+        <ul class="announcement-list">
+            {% for a in announcements %}
+            <li class="announcement-item">
+                <div class="status-indicator {% if a.is_active %}active{% else %}expired{% endif %}"></div>
+                
+                <div class="message-content">
+                    <div class="text">{{ a.message }}</div>
+                    <div class="meta">
+                        Posted by <strong>{{ a.created_by.username }}</strong> on {{ a.created_at|date:"M d, Y" }} at {{ a.created_at|time:"h:i A" }}
+                    </div>
+                </div>
+                
+                <span class="type-badge 
+                    {% if a.type == 'INFO' %}info{% endif %}
+                    {% if a.type == 'WARNING' %}warning{% endif %}
+                    {% if a.type == 'DANGER' %}danger{% endif %}
+                    {% if a.type == 'SUCCESS' %}success{% endif %}">
+                    {% if a.type == 'INFO' %}ℹ️ Info{% endif %}
+                    {% if a.type == 'WARNING' %}⚠️ Warning{% endif %}
+                    {% if a.type == 'DANGER' %}🚨 Emergency{% endif %}
+                    {% if a.type == 'SUCCESS' %}✅ Success{% endif %}
+                </span>
+                
+                <div class="expiry-info">
+                    {% if a.active_until %}
+                        <div class="time">{{ a.active_until|date:"M d, h:i A" }}</div>
+                        <div class="label">{% if a.is_active %}Expires{% else %}Expired{% endif %}</div>
+                    {% else %}
+                        <div class="time">—</div>
+                        <div class="label">No expiry</div>
+                    {% endif %}
+                </div>
+                
+                {% if a.is_active %}
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="expire">
+                        <input type="hidden" name="announcement_id" value="{{ a.id }}">
+                        <button type="submit" class="expire-btn" onclick="return confirm('End this broadcast now?')">
+                            End Now
+                        </button>
+                    </form>
+                {% else %}
+                    <span class="expired-label">Ended</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <div class="icon">📢</div>
+            <h4>No announcements yet</h4>
+            <p>Create your first broadcast using the form above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function updatePreview() {
+        const type = document.getElementById('announcementType').value;
+        const message = document.getElementById('announcementMessage').value;
+        const banner = document.getElementById('previewBanner');
+        const icon = document.getElementById('previewIcon');
+        const text = document.getElementById('previewText');
+        
+        // Update icon and class
+        banner.className = 'preview-banner';
+        if (type === 'INFO') {
+            banner.classList.add('info');
+            icon.textContent = 'ℹ️';
+        } else if (type === 'WARNING') {
+            banner.classList.add('warning');
+            icon.textContent = '⚠️';
+        } else if (type === 'DANGER') {
+            banner.classList.add('danger');
+            icon.textContent = '🚨';
+        } else if (type === 'SUCCESS') {
+            banner.classList.add('success');
+            icon.textContent = '✅';
+        }
+        
+        // Update text
+        text.textContent = message || 'Your message will appear here...';
+    }
+</script>
+{% endblock %}

@@ -9,5 +9,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
-    # ... any other URLs
+    
+    # Admin Routes
+    path('admin/users/', views.admin_users_view, name='admin_users'),
+    path('admin/users/<int:user_id>/action/', views.admin_user_action_view, name='admin_user_action'),
+    path('admin/announcements/', views.admin_announcements_view, name='admin_announcements'),
 ]

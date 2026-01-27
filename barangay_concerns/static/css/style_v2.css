@@ -1065,3 +1065,168 @@ a:hover {
     color: var(--text-tertiary);
     margin-top: 0.25rem;
 }
+
+/* =========================================
+   ADMIN DASHBOARD & UI UTILITIES
+   ========================================= */
+
+/* Table Styles */
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    vertical-align: top;
+}
+
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background-color: transparent;
+    padding: 1rem;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.table tbody td {
+    padding: 1rem 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Subtle Backgrounds */
+.bg-indigo-subtle { background-color: var(--primary-light) !important; color: var(--primary-dark); }
+.bg-light { background-color: #f8fafc !important; color: var(--text-secondary); }
+.bg-white { background-color: var(--bg-card) !important; }
+
+.bg-warning-subtle { background-color: #fef3c7 !important; color: #92400e; }
+.bg-danger-subtle { background-color: #fee2e2 !important; color: #991b1b; }
+.bg-primary-subtle { background-color: #e0e7ff !important; color: #3730a3; }
+.bg-success-subtle { background-color: #dcfce7 !important; color: #166534; }
+
+/* Dark Mode Overrides */
+[data-theme="dark"] .table thead th { border-color: var(--border-color); }
+[data-theme="dark"] .table tbody td { border-color: var(--border-color); }
+
+[data-theme="dark"] .bg-indigo-subtle { background-color: rgba(99, 102, 241, 0.2) !important; color: #e0e7ff; }
+[data-theme="dark"] .bg-light { background-color: var(--bg-tertiary) !important; color: var(--text-secondary); }
+[data-theme="dark"] .bg-white { background-color: var(--bg-card) !important; }
+
+[data-theme="dark"] .bg-warning-subtle { background-color: rgba(245, 158, 11, 0.2) !important; color: #fcd34d; }
+[data-theme="dark"] .bg-danger-subtle { background-color: rgba(239, 68, 68, 0.2) !important; color: #fca5a5; }
+[data-theme="dark"] .bg-primary-subtle { background-color: rgba(79, 70, 229, 0.2) !important; color: #c7d2fe; }
+[data-theme="dark"] .bg-success-subtle { background-color: rgba(16, 185, 129, 0.2) !important; color: #6ee7b7; }
+
+/* Progress Bars */
+.progress {
+    overflow: hidden;
+    background-color: #e2e8f0;
+}
+[data-theme="dark"] .progress {
+    background-color: var(--bg-tertiary);
+}
+.progress-bar {
+    height: 100%;
+    transition: width 0.6s ease;
+}
+
+/* Misc Utilities */
+.avatar-container { position: relative; display: inline-block; }
+.letter-spacing-wide { letter-spacing: 0.05em; }
+.rounded-4 { border-radius: 1rem !important; }
+.rounded-3 { border-radius: 0.75rem !important; }
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.border-0 { border: 0 !important; }
+
+
+/* Dropdown Dark Mode Fixes */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-md);
+    padding: 0.5rem;
+    list-style: none !important; /* Remove bullets */
+    margin: 0;
+    min-width: 200px;
+    z-index: 9999; /* Ensure on top */
+}
+
+/* Ensure list items inside dropdowns don't have bullets */
+.dropdown-menu li {
+    list-style: none !important;
+    margin: 0;
+    padding: 0;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown-item {
+    display: flex !important; /* Force flex */
+    align-items: center;
+    width: 100%;
+    clear: both;
+    font-weight: 500;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    padding: 0.5rem 1rem;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-header {
+    color: var(--text-tertiary);
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-top-color: var(--border-color);
+}
+
+/* Fix Table Dropdown Clipping */
+.table-responsive {
+    overflow-x: auto;
+    overflow-y: clip; /* Revert to standard behavior but rely on static position */
+    min-height: 400px; /* Give enough height for dropdowns */
+    padding-bottom: 100px; /* Extra padding at bottom */
+}
+
+/* Modal Dark Mode Fixes */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color);
+    background-color: var(--bg-tertiary); /* Use tertiary for header/footer contrast */
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}

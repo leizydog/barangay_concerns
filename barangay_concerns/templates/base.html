@@ -24,6 +24,38 @@
 
 <body>
 
+    <!-- Global Announcements -->
+    {% if global_announcements %}
+    <div class="bg-indigo-900 text-white overflow-hidden position-relative" style="height: 40px;">
+         <div class="d-flex align-items-center h-100 announcement-scroller">
+            <div class="d-flex gap-5 px-4" style="animation: scrollLeft 30s linear infinite;">
+                {% for announcement in global_announcements %}
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    {% if announcement.type == 'DANGER' %}
+                        <span class="badge bg-danger rounded-pill">EMERGENCY</span>
+                    {% elif announcement.type == 'WARNING' %}
+                        <span class="badge bg-warning text-dark rounded-pill">ALERT</span>
+                    {% else %}
+                        <span class="badge bg-info text-dark rounded-pill">INFO</span>
+                    {% endif %}
+                    <span class="fw-medium">{{ announcement.message }}</span>
+                </div>
+                {% endfor %}
+                <!-- Duplicate for seamless loop if needed, or JS based -->
+            </div>
+         </div>
+    </div>
+    <style>
+        @keyframes scrollLeft {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .announcement-scroller:hover div {
+            animation-play-state: paused;
+        }
+    </style>
+    {% endif %}
+
     <!-- Glass Header -->
     <nav class="navbar-custom">
         <div class="container d-flex justify-content-between align-items-center">
@@ -45,7 +77,11 @@
                 {% if user.is_authenticated and user.is_lgu %}
                 <a href="{% url 'analytics:dashboard' %}"
                     class="nav-link {% if request.resolver_match.view_name == 'analytics:dashboard' %}active{% endif %}">
-                    Dashboard
+                    Analytics
+                </a>
+                <a href="{% url 'security_management:admin_users' %}"
+                    class="nav-link {% if request.resolver_match.view_name == 'security_management:admin_users' %}active{% endif %}">
+                    Users
                 </a>
                 <a href="{% url 'concerns:archive_list' %}"
                     class="nav-link {% if request.resolver_match.view_name == 'concerns:archive_list' %}active{% endif %}">

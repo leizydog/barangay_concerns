@@ -1,9 +1,19 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from datetime import timedelta
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
+from .models import User, Announcement, AuditLog
 from apps.concerns.utils import generate_random_alias
+
+def is_staff_or_admin(user):
+    return user.is_authenticated and user.role in ['LGU', 'ADMIN']
+
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -66,3 +76,145 @@ def profile_view(request):
         form = UserProfileForm(instance=request.user)
     
     return render(request, 'security_management/pages/profile.html', {'form': form})
+
+# --- ADMIN MANAGEMENT VIEWS ---
+
+@login_required
+@user_passes_test(is_staff_or_admin)
+def admin_users_view(request):
+    """
+    User Management Dashboard
+    Tabs: 'all', 'lgu', 'risk', 'banned'
+    """
+    tab = request.GET.get('tab', 'all')
+    search_query = request.GET.get('search', '')
+    
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Filter by Tab
+    if tab == 'lgu':
+        users = users.filter(role__in=['LGU', 'ADMIN'])
+    elif tab == 'risk':
+        # Karma between -5 and -9
+        users = users.filter(points__lte=-5, points__gt=-10)
+    elif tab == 'banned':
+        # Karma <= -10 OR manually banned (is_active=False)
+        users = users.filter(Q(points__lte=-10) | Q(is_active=False))
+        
+    # Search
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(alias__icontains=search_query)
+        )
+        
+    # Pagination
+    paginator = Paginator(users, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'users': page_obj,
+        'tab': tab,
+        'search_query': search_query,
+        'total_count': User.objects.count(),
+        'banned_count': User.objects.filter(is_active=False).count(),
+        'risk_count': User.objects.filter(points__lte=-5, points__gt=-10).count(),
+    }
+    return render(request, 'security_management/pages/admin_users.html', context)
+
+@login_required
+@user_passes_test(is_staff_or_admin)
+@require_POST
+def admin_user_action_view(request, user_id):
+    target_user = get_object_or_404(User, pk=user_id)
+    action_type = request.POST.get('action')
+    reason = request.POST.get('reason', 'No reason provided')
+    
+    # Prevent acting on self or superusers (safeguard)
+    if target_user == request.user:
+        messages.error(request, "You cannot perform actions on yourself.")
+        return redirect('security_management:admin_users')
+        
+    AuditLog.objects.create(
+        actor=request.user,
+        action=action_type.upper(),
+        target=target_user.username,
+        details=reason
+    )
+    
+    if action_type == 'ban':
+        target_user.is_active = False
+        target_user.save()
+        messages.success(request, f"User {target_user.username} has been BANNED.")
+        
+    elif action_type == 'unban':
+        target_user.is_active = True
+        # If karma is low, maybe reset it partially so they don't get autobanned again?
+        if target_user.points <= -10:
+             target_user.points = -5 # Reset to "At Risk" level instead of banned level
+        target_user.save()
+        messages.success(request, f"User {target_user.username} has been UNBANNED.")
+        
+    elif action_type == 'promote':
+        new_role = request.POST.get('role', 'LGU')
+        target_user.role = new_role
+        target_user.save()
+        messages.success(request, f"User {target_user.username} promoted to {new_role}.")
+        
+    elif action_type == 'demote':
+        target_user.role = 'USER'
+        target_user.save()
+        messages.success(request, f"User {target_user.username} demoted to Regular User.")
+        
+    elif action_type == 'reset_karma':
+        target_user.points = 0
+        target_user.save()
+        messages.success(request, f"Karma points for {target_user.username} reset to 0.")
+        
+    return redirect(request.META.get('HTTP_REFERER', 'security_management:admin_users'))
+
+@login_required
+@user_passes_test(is_staff_or_admin)
+def admin_announcements_view(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create':
+            message = request.POST.get('message')
+            type = request.POST.get('type')
+            duration = int(request.POST.get('duration', 24)) # Default 24 hours
+            
+            if message:
+                active_until = timezone.now() + timedelta(hours=duration)
+                Announcement.objects.create(
+                    message=message,
+                    type=type,
+                    active_until=active_until,
+                    created_by=request.user
+                )
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action='ANNOUNCEMENT',
+                    target='Global',
+                    details=f"Created: {message}"
+                )
+                messages.success(request, "Announcement published.")
+                
+        elif action == 'expire':
+            announcement_id = request.POST.get('announcement_id')
+            Announcement.objects.filter(id=announcement_id).update(is_active=False)
+            messages.success(request, "Announcement expired.")
+            
+        return redirect('security_management:admin_announcements')
+    
+    announcements = Announcement.objects.all().order_by('-created_at')
+    
+    context = {
+        'announcements': announcements,
+        'types': Announcement.TYPES
+    }
+    return render(request, 'security_management/pages/admin_announcements.html', context)
