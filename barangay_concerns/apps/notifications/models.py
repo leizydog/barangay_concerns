@@ -11,6 +11,8 @@ class Notification(models.Model):
         ('STATUS_CHANGE', 'Status Changed'),
         ('PRIORITY_CHANGE', 'Priority Changed'),
         ('COMMENT', 'New Comment'),
+        ('UPVOTE', 'Upvote Received'),
+        ('DOWNVOTE', 'Downvote Received'),
         ('ASSIGNED', 'Concern Assigned'),
         ('RESOLVED', 'Concern Resolved'),
         ('ARCHIVED', 'Concern Archived'),

@@ -203,3 +203,58 @@ def notify_concern_archived(concern):
             title=title,
             message=message
         )
+
+
+def notify_new_comment(concern, commenter):
+    """
+    Create a notification when someone comments on a concern.
+    
+    Args:
+        concern: The concern that received the comment
+        commenter: The user who posted the comment
+    """
+    # Don't notify if the commenter is the reporter
+    if concern.reporter and concern.reporter != commenter:
+        commenter_name = commenter.alias or commenter.get_full_name() or commenter.username
+        
+        title = f"💬 New comment on your concern"
+        message = f"{commenter_name} commented on your concern \"{concern.title}\"."
+        
+        create_notification(
+            user=concern.reporter,
+            concern=concern,
+            notification_type='COMMENT',
+            title=title,
+            message=message
+        )
+
+
+def notify_vote(concern, voter, vote_value):
+    """
+    Create a notification when someone votes on a concern.
+    
+    Args:
+        concern: The concern that received the vote
+        voter: The user who voted
+        vote_value: 1 for upvote, -1 for downvote
+    """
+    # Don't notify if voter is the reporter (shouldn't happen due to view logic, but safety check)
+    if concern.reporter and concern.reporter != voter:
+        voter_name = voter.alias or voter.get_full_name() or voter.username
+        
+        if vote_value == 1:
+            title = "👍 Someone upvoted your concern"
+            message = f"{voter_name} upvoted your concern \"{concern.title}\"."
+            notification_type = 'UPVOTE'
+        else:
+            title = "👎 Someone downvoted your concern"
+            message = f"{voter_name} downvoted your concern \"{concern.title}\"."
+            notification_type = 'DOWNVOTE'
+        
+        create_notification(
+            user=concern.reporter,
+            concern=concern,
+            notification_type=notification_type,
+            title=title,
+            message=message
+        )

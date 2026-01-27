@@ -5,14 +5,14 @@ from django.contrib import messages
 from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
-from django.http import JsonResponse
 from .models import Concern, Comment, EmergencyUnit, Vote
-from .forms import ConcernForm, ConcernUpdateForm, CommentForm
 from .forms import ConcernForm, ConcernUpdateForm, CommentForm
 from .utils import generate_random_alias
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from apps.notifications.services import notify_new_comment, notify_vote
+
 
 def concern_list_view(request):
     # Exclude archived and closed concerns - show ALL to everyone
@@ -213,6 +213,9 @@ def concern_add_comment_view(request, pk):
             comment.concern = concern
             comment.author = request.user
             comment.save()
+            
+            # Notify the concern reporter about the new comment
+            notify_new_comment(concern, request.user)
             
             messages.success(request, 'Comment added successfully.')
             return redirect('concerns:detail', pk=pk)
@@ -524,6 +527,9 @@ def concern_vote_view(request, pk):
     if concern.reporter:
         concern.reporter.points = models.F('points') + vote_val
         concern.reporter.save(update_fields=['points'])
+        
+        # Notify the reporter about the vote
+        notify_vote(concern, request.user, vote_val)
         
         # Karma Moderation Check (Refresh to get actual value)
         concern.reporter.refresh_from_db()

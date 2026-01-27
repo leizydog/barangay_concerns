@@ -4,130 +4,390 @@
 {% block title %}Notifications - Barangay Concerns{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="page-header d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+<style>
+    /* ===== NOTIFICATION PAGE STYLES ===== */
+    .notif-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 1.5rem;
+    }
+
+    .notif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .notif-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .notif-subtitle {
+        color: var(--text-tertiary);
+        font-size: 0.9rem;
+        margin: 0.25rem 0 0 0;
+    }
+
+    .notif-count {
+        color: var(--primary);
+        font-weight: 700;
+    }
+
+    .notif-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .notif-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: none;
+    }
+
+    .notif-btn.primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .notif-btn.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .notif-btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.9;
+    }
+
+    /* Notification List */
+    .notif-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .notif-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+
+    .notif-item:hover {
+        background: var(--bg-tertiary);
+    }
+
+    .notif-item.unread {
+        border-left: 3px solid var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .notif-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .notif-icon.status { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .notif-icon.priority { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .notif-icon.resolved { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .notif-icon.archived { background: rgba(100, 116, 139, 0.15); color: #64748b; }
+    .notif-icon.comment { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+    .notif-icon.upvote { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .notif-icon.downvote { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .notif-icon.default { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+    .notif-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notif-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .notif-item-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .notif-time {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        white-space: nowrap;
+    }
+
+    .notif-message {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.5;
+    }
+
+    .notif-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .notif-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .notif-tag.category {
+        background: var(--bg-tertiary);
+        color: var(--text-secondary);
+    }
+
+    .notif-tag.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .notif-tag.in_progress { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .notif-tag.resolved { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    .notif-tag.closed { background: rgba(100, 116, 139, 0.15); color: #64748b; }
+
+    .notif-footer {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .notif-link {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .notif-link:hover {
+        text-decoration: underline;
+    }
+
+    .notif-link.secondary {
+        color: var(--text-tertiary);
+    }
+
+    .notif-delete {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: var(--text-tertiary);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .notif-delete:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Empty State */
+    .notif-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .notif-empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .notif-empty h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    .notif-empty p {
+        color: var(--text-tertiary);
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+        .notif-container {
+            padding: 1rem;
+        }
+        .notif-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .notif-item {
+            padding: 0.75rem;
+        }
+        .notif-icon {
+            width: 36px;
+            height: 36px;
+        }
+    }
+</style>
+
+<div class="notif-container">
+    <!-- Header -->
+    <div class="notif-header">
         <div>
-            <h1 class="fw-bold mb-1 d-flex align-items-center gap-2">
-                <i data-lucide="bell" class="text-primary icon-lg"></i> Notifications
+            <h1 class="notif-title">
+                <i data-lucide="bell" class="icon-lg" style="color: var(--primary);"></i>
+                Notifications
             </h1>
-            <p class="text-secondary mb-0">
+            <p class="notif-subtitle">
                 {% if unread_count > 0 %}
-                    You have <span class="fw-bold text-primary">{{ unread_count }}</span> unread notification{{ unread_count|pluralize }}
+                    You have <span class="notif-count">{{ unread_count }}</span> unread notification{{ unread_count|pluralize }}
                 {% else %}
                     All caught up! No new notifications.
                 {% endif %}
             </p>
         </div>
-        <div class="d-flex gap-2">
+
+        <div class="notif-actions">
             {% if unread_count > 0 %}
             <form method="post" action="{% url 'notifications:mark_all_read' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-                    <i data-lucide="check-check" class="icon-sm"></i> Mark All Read
+                <button type="submit" class="notif-btn primary">
+                    <i data-lucide="check-check" style="width: 16px; height: 16px;"></i>
+                    Mark All Read
                 </button>
             </form>
             {% endif %}
             
             {% if notifications %}
-            <form method="post" action="{% url 'notifications:delete_all_read' %}" 
-                  onsubmit="return confirm('Delete all read notifications?')">
+            <form method="post" action="{% url 'notifications:delete_all_read' %}" onsubmit="return confirm('Delete all read notifications?')">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-light text-danger d-flex align-items-center gap-2">
-                    <i data-lucide="trash-2" class="icon-sm"></i> Clear Read
+                <button type="submit" class="notif-btn danger">
+                    <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                    Clear Read
                 </button>
             </form>
             {% endif %}
         </div>
     </div>
 
-    <div class="d-flex flex-column gap-3">
+    <!-- Notification List -->
+    <div class="notif-list">
         {% for notification in notifications %}
-        <div class="card border-0 shadow-sm {% if not notification.is_read %}border-start border-4 border-primary{% endif %}" 
-             style="overflow: hidden; transition: transform 0.2s;">
-            <div class="card-body p-3 d-flex gap-3">
-                <div class="flex-shrink-0">
-                    <div class="rounded-circle p-2 d-flex align-items-center justify-content-center"
-                         style="width: 48px; height: 48px; background: {% if not notification.is_read %}var(--primary-light){% else %}#f1f5f9{% endif %}; color: {% if not notification.is_read %}var(--primary){% else %}var(--text-secondary){% endif %};">
-                        
-                        {% if notification.notification_type == 'STATUS_CHANGE' %}
-                            <i data-lucide="refresh-cw" class="icon-md"></i>
-                        {% elif notification.notification_type == 'PRIORITY_CHANGE' %}
-                            <i data-lucide="zap" class="icon-md"></i>
-                        {% elif notification.notification_type == 'RESOLVED' %}
-                            <i data-lucide="check-circle" class="icon-md"></i>
-                        {% elif notification.notification_type == 'ARCHIVED' %}
-                            <i data-lucide="archive" class="icon-md"></i>
-                        {% elif notification.notification_type == 'COMMENT' %}
-                            <i data-lucide="message-circle" class="icon-md"></i>
-                        {% else %}
-                            <i data-lucide="bell" class="icon-md"></i>
-                        {% endif %}
-                    </div>
+        <div class="notif-item {% if not notification.is_read %}unread{% endif %}">
+            <!-- Icon -->
+            <div class="notif-icon 
+                {% if notification.notification_type == 'STATUS_CHANGE' %}status
+                {% elif notification.notification_type == 'PRIORITY_CHANGE' %}priority
+                {% elif notification.notification_type == 'RESOLVED' %}resolved
+                {% elif notification.notification_type == 'ARCHIVED' %}archived
+                {% elif notification.notification_type == 'COMMENT' %}comment
+                {% elif notification.notification_type == 'UPVOTE' %}upvote
+                {% elif notification.notification_type == 'DOWNVOTE' %}downvote
+                {% else %}default{% endif %}">
+                {% if notification.notification_type == 'STATUS_CHANGE' %}
+                    <i data-lucide="refresh-cw" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'PRIORITY_CHANGE' %}
+                    <i data-lucide="zap" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'RESOLVED' %}
+                    <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'ARCHIVED' %}
+                    <i data-lucide="archive" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'COMMENT' %}
+                    <i data-lucide="message-circle" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'UPVOTE' %}
+                    <i data-lucide="thumbs-up" style="width: 20px; height: 20px;"></i>
+                {% elif notification.notification_type == 'DOWNVOTE' %}
+                    <i data-lucide="thumbs-down" style="width: 20px; height: 20px;"></i>
+                {% else %}
+                    <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="notif-content">
+                <div class="notif-top">
+                    <h4 class="notif-item-title">{{ notification.title }}</h4>
+                    <span class="notif-time">{{ notification.created_at|timesince }} ago</span>
                 </div>
-                
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start mb-1">
-                        <h6 class="fw-bold mb-0 text-dark">{{ notification.title }}</h6>
-                        <small class="text-secondary" style="font-size: 0.8rem;">
-                            {{ notification.created_at|timesince }} ago
-                        </small>
-                    </div>
-                    
-                    <p class="text-secondary mb-2 small">{{ notification.message }}</p>
-                    
+
+                <p class="notif-message">{{ notification.message }}</p>
+
+                {% if notification.concern %}
+                <div class="notif-tags">
+                    <span class="notif-tag category">{{ notification.concern.get_category_display }}</span>
+                    <span class="notif-tag {{ notification.concern.status|lower }}">{{ notification.concern.get_status_display }}</span>
+                </div>
+                {% endif %}
+
+                <div class="notif-footer">
                     {% if notification.concern %}
-                    <div class="d-flex gap-2 mb-2">
-                        <span class="badge bg-light text-dark border">
-                            {{ notification.concern.get_category_display }}
-                        </span>
-                        <span class="badge badge-status-{{ notification.concern.status|lower }}">
-                            {{ notification.concern.get_status_display }}
-                        </span>
-                    </div>
+                    <a href="{% url 'concerns:detail' notification.concern.pk %}{% if not notification.is_read %}?mark_read={{ notification.pk }}{% endif %}" class="notif-link">
+                        View Details
+                    </a>
                     {% endif %}
                     
-                    <div class="d-flex gap-2 mt-2">
-                         {% if notification.concern %}
-                            <a href="{% url 'concerns:detail' notification.concern.pk %}{% if not notification.is_read %}?mark_read={{ notification.pk }}{% endif %}" 
-                               class="btn btn-sm btn-outline-primary py-1 px-3" style="font-size: 0.8rem;">
-                                View Details
-                            </a>
-                        {% endif %}
-                        
-                        {% if not notification.is_read %}
-                        <a href="{% url 'notifications:mark_read' notification.pk %}" 
-                           class="btn btn-sm btn-light text-secondary py-1 px-3" style="font-size: 0.8rem;">
-                           Mark Read
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="flex-shrink-0 ms-2">
-                    <form method="post" action="{% url 'notifications:delete' notification.pk %}">
+                    {% if not notification.is_read %}
+                    <a href="{% url 'notifications:mark_read' notification.pk %}" class="notif-link secondary">
+                        Mark as Read
+                    </a>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'notifications:delete' notification.pk %}" style="margin-left: auto;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-link text-tertiary p-0" title="Delete" style="text-decoration: none;">
-                            <i data-lucide="x" class="icon-sm"></i>
+                        <button type="submit" class="notif-delete" title="Delete">
+                            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
                         </button>
                     </form>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="text-center py-5">
-            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                <i data-lucide="bell-off" class="text-secondary icon-xl"></i>
+        <div class="notif-empty">
+            <div class="notif-empty-icon">
+                <i data-lucide="bell-off" style="width: 36px; height: 36px; color: var(--text-tertiary);"></i>
             </div>
-            <h5 class="fw-bold text-secondary">No Notifications</h5>
-            <p class="text-muted small">Notifications about your concerns will appear here.</p>
+            <h3>No Notifications</h3>
+            <p>Notifications about your concerns will appear here.</p>
         </div>
         {% endfor %}
     </div>
 </div>
-
-<style>
-    .card:hover {
-        background-color: #f8fafc;
-    }
-</style>
 {% endblock %}
