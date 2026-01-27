@@ -1,14 +1,32 @@
 # config/settings.py
 import os
 from pathlib import Path
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-change-this-in-production'
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
 
-DEBUG = True
+# Security - Use environment variable in production
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-change-this-in-production')
 
+# Debug mode - False in production
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+
+# Allowed hosts
 ALLOWED_HOSTS = []
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+if DEBUG:
+    ALLOWED_HOSTS.extend(['localhost', '127.0.0.1', '[::1]'])
+
+# Render.com specific - add render host
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -27,9 +45,6 @@ INSTALLED_APPS = [
 ]
 
 # AI Configuration
-import os
-from dotenv import load_dotenv
-load_dotenv()
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
 # Email Configuration (Console backend for development)
@@ -46,6 +61,7 @@ DEFAULT_FROM_EMAIL = 'Barangay Concerns <noreply@barangay-concerns.local>'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,12 +90,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+# Database - Use PostgreSQL in production (via DATABASE_URL), SQLite in development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Override with DATABASE_URL if available (Render provides this)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -101,10 +123,15 @@ TIME_ZONE = 'Asia/Manila'
 USE_I18N = True
 USE_TZ = True
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Whitenoise for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -115,4 +142,12 @@ AUTH_USER_MODEL = 'security_management.User'  # Changed from accounts.User
 LOGIN_URL = 'security_management:login'  # Changed from accounts:login
 LOGIN_REDIRECT_URL = 'concerns:list'
 LOGOUT_REDIRECT_URL = 'home'
-# Force reload
+
+# CSRF trusted origins for Render
+CSRF_TRUSTED_ORIGINS = []
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+# Add any custom domain
+custom_domain = os.environ.get('CUSTOM_DOMAIN')
+if custom_domain:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{custom_domain}')

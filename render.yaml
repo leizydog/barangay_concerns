@@ -1,0 +1,32 @@
+# render.yaml - Render Blueprint for deployment
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: barangay-concerns
+    env: python
+    region: singapore  # Closest to Philippines
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "config.settings"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: PYTHON_VERSION
+        value: "3.11.4"
+      - key: GEMINI_API_KEY
+        sync: false  # Manual entry required
+    autoDeploy: true
+
+databases:
+  - name: barangay-concerns-db
+    databaseName: barangay_concerns
+    user: barangay_admin
+    plan: free
+    region: singapore
