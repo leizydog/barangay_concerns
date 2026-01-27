@@ -36,6 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # Third-party apps
+    'cloudinary_storage',
+    'cloudinary',
+    
     # Local apps
     'apps.security_management',  # Changed from accounts
     'apps.concerns',
@@ -151,3 +155,16 @@ if RENDER_EXTERNAL_HOSTNAME:
 custom_domain = os.environ.get('CUSTOM_DOMAIN')
 if custom_domain:
     CSRF_TRUSTED_ORIGINS.append(f'https://{custom_domain}')
+
+# Cloudinary Configuration (for media/image storage in production)
+# Set these environment variables in Render:
+#   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+}
+
+# Use Cloudinary for media files in production (when CLOUDINARY_CLOUD_NAME is set)
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
