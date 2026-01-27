@@ -415,13 +415,6 @@
 
             loadingLive = true;
             
-            // Clear only previously loaded live markers
-            emergencyGroup.eachLayer(function(layer) {
-                if (layer.isLive) {
-                    emergencyGroup.removeLayer(layer);
-                }
-            });
-
             var bounds = map.getBounds();
             // Expanded query to include Barangays
             var query = `
@@ -441,6 +434,13 @@
                 .then(res => res.json())
                 .then(data => {
                     if (!data.elements) return;
+                    
+                    // Clear only previously loaded live markers NOW, after we have new data
+                    emergencyGroup.eachLayer(function(layer) {
+                        if (layer.isLive) {
+                            emergencyGroup.removeLayer(layer);
+                        }
+                    });
                     
                     data.elements.forEach(el => {
                         var lat = el.lat || el.center?.lat;
