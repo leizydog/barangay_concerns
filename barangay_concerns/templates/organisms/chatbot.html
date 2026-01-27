@@ -11,9 +11,18 @@
         </button>
     </div>
 
-    <div id="chatbot-messages" class="chatbot-messages">
+<div id="chatbot-messages" class="chatbot-messages">
         <div class="message bot-message">
             Hello! I'm your AI assistant. Ask me about reporting concerns or safety tips! 👋
+        </div>
+        <div class="faq-chips" id="faq-chips">
+            <div class="faq-label">Quick Questions:</div>
+            <button class="faq-chip" data-question="How do I file a concern?">📝 File a Concern</button>
+            <button class="faq-chip" data-question="How do I report an inappropriate comment?">🚩 Report Comment</button>
+            <button class="faq-chip" data-question="What is karma and how does it work?">⭐ Karma System</button>
+            <button class="faq-chip" data-question="How do I vote on concerns?">👍 Voting</button>
+            <button class="faq-chip" data-question="Can I file a concern anonymously?">🔒 Anonymous</button>
+            <button class="faq-chip" data-question="What are the different concern categories?">📋 Categories</button>
         </div>
     </div>
 
@@ -160,6 +169,43 @@
         color: var(--text-tertiary, #94a3b8);
         font-size: 0.8rem;
         padding-left: 0.5rem;
+        display: none;
+    }
+
+    /* FAQ Chips */
+    .faq-chips {
+        padding: 0.75rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .faq-label {
+        width: 100%;
+        font-size: 0.75rem;
+        color: var(--text-tertiary, #94a3b8);
+        margin-bottom: 0.25rem;
+    }
+    
+    .faq-chip {
+        background: var(--bg-card, white);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 20px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-primary);
+    }
+    
+    .faq-chip:hover {
+        background: var(--primary-light, #e0e7ff);
+        border-color: var(--primary, #6366f1);
+        color: var(--primary, #6366f1);
+    }
+    
+    .faq-chips.hidden {
         display: none;
     }
 
@@ -319,6 +365,24 @@
         sendBtn.addEventListener('click', sendMessage);
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
+        });
+
+        // FAQ Chip handlers
+        const faqChips = document.querySelectorAll('.faq-chip');
+        const faqContainer = document.getElementById('faq-chips');
+        
+        faqChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                const question = chip.getAttribute('data-question');
+                if (question) {
+                    input.value = question;
+                    sendMessage();
+                    // Hide FAQ chips after first use
+                    if (faqContainer) {
+                        faqContainer.classList.add('hidden');
+                    }
+                }
+            });
         });
     });
 </script>
