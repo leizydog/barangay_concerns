@@ -35,10 +35,7 @@
 </div>
 
 <button id="chatbot-toggle" class="chatbot-toggle shadow-lg">
-    <i data-lucide="message-circle" class="icon-lg"></i>
-    <span class="position-absolute top-0 start-100 translate-middle p-2 bg-success border border-light rounded-circle">
-        <span class="visually-hidden">New alerts</span>
-    </span>
+    <i data-lucide="bot"></i>
 </button>
 
 <style>
@@ -53,7 +50,6 @@
         background: var(--primary, #6366f1);
         color: white;
         border: none;
-        font-size: 1.5rem;
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         z-index: 1000;
@@ -61,6 +57,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    
+    .chatbot-toggle i,
+    .chatbot-toggle svg {
+        width: 28px;
+        height: 28px;
     }
 
     .chatbot-toggle:hover {
