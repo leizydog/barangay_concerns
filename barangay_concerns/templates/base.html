@@ -40,6 +40,9 @@
                     {% endif %}
                     <span class="fw-medium">{{ announcement.message }}</span>
                 </div>
+                {% if not forloop.last %}
+                <span style="margin: 0 2rem; opacity: 0.5; font-size: 1.25rem;">•</span>
+                {% endif %}
                 {% endfor %}
                 <!-- Duplicate for seamless loop if needed, or JS based -->
             </div>
