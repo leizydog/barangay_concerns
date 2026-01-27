@@ -1230,3 +1230,268 @@ a:hover {
 [data-theme="dark"] .btn-close {
     filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+/* ========================================
+   MOBILE RESPONSIVE FIXES
+   ======================================== */
+
+/* Mobile-first improvements for concerns list */
+@media (max-width: 576px) {
+    /* General container padding */
+    .container {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    /* Page titles */
+    h1.display-6 {
+        font-size: 1.5rem;
+    }
+    
+    /* Geographic scope tabs - horizontal scroll with smaller padding */
+    .no-scrollbar {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .rounded-pill.px-4 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    
+    /* Search and filter stacking */
+    form.d-flex.align-items-center {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem !important;
+    }
+    
+    form.d-flex.align-items-center > .position-relative {
+        width: 100%;
+    }
+    
+    form.d-flex.align-items-center input[type="text"] {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+    
+    form.d-flex.align-items-center .d-flex.gap-2 {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+    
+    form.d-flex.align-items-center select {
+        flex: 1 1 auto;
+        min-width: 0 !important;
+    }
+    
+    form.d-flex.align-items-center button[type="submit"] {
+        flex-shrink: 0;
+    }
+    
+    /* Concern cards responsive grid */
+    .row[style*="--bs-gutter"] {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    
+    .row[style*="--bs-gutter"] > div {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    /* Card adjustments */
+    .concern-card,
+    .card {
+        border-radius: var(--radius-md);
+    }
+    
+    .concern-card .card-body,
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Detail page adjustments */
+    .detail-container {
+        padding: 0.75rem;
+    }
+    
+    .detail-card {
+        border-radius: 12px;
+    }
+    
+    .detail-card-header {
+        padding: 1rem;
+    }
+    
+    .detail-card-body {
+        padding: 1rem;
+    }
+    
+    /* Vote buttons smaller on mobile */
+    .vote-btn {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Comments section */
+    .comment-item {
+        padding: 0.75rem 0;
+    }
+    
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+    }
+    
+    .comment-body {
+        font-size: 0.9rem;
+    }
+    
+    /* Admin pages */
+    .admin-container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .admin-header h1 {
+        font-size: 1.35rem;
+    }
+    
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
+    }
+    
+    .filter-tabs a {
+        white-space: nowrap;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .search-box input {
+        min-width: 0 !important;
+        flex: 1;
+    }
+    
+    /* Table actions stack vertically */
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* User table hide less important columns */
+    .user-table th:nth-child(3),
+    .user-table td:nth-child(3),
+    .user-table th:nth-child(5),
+    .user-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Reports page */
+    .reports-container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .report-card {
+        padding: 1rem;
+    }
+    
+    .report-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .report-actions {
+        flex-direction: column;
+    }
+    
+    .report-actions form {
+        width: 100%;
+    }
+    
+    .action-btn.delete,
+    .action-btn.dismiss {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .karma-input {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    /* Announcement form */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Stat pills stack */
+    .stats-row .stat-pill {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Pagination */
+    .pagination-container {
+        flex-wrap: wrap;
+    }
+    
+    /* Hide "Page X of Y" on very small screens, show arrows */
+    .pagination-container .current {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.75rem;
+    }
+}
+
+/* Medium mobile adjustments */
+@media (max-width: 768px) and (min-width: 577px) {
+    /* Two-column on tablet for filters */
+    form.d-flex.align-items-center .d-flex.gap-2 select {
+        min-width: 120px !important;
+    }
+    
+    /* Stats row 2 columns */
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Prevent horizontal overflow on all screens */
+html, body {
+    overflow-x: hidden;
+}
+
+.fade-in {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
