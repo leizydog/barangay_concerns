@@ -218,3 +218,86 @@ def admin_announcements_view(request):
         'types': Announcement.TYPES
     }
     return render(request, 'security_management/pages/admin_announcements.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_admin)
+def admin_reports_view(request):
+    """Admin moderation queue for reported comments."""
+    from apps.concerns.models import CommentReport
+    
+    tab = request.GET.get('tab', 'pending')
+    
+    if tab == 'pending':
+        reports = CommentReport.objects.filter(status='PENDING')
+    elif tab == 'resolved':
+        reports = CommentReport.objects.filter(status='RESOLVED')
+    elif tab == 'dismissed':
+        reports = CommentReport.objects.filter(status='DISMISSED')
+    else:
+        reports = CommentReport.objects.all()
+    
+    context = {
+        'reports': reports,
+        'tab': tab,
+        'pending_count': CommentReport.objects.filter(status='PENDING').count(),
+        'resolved_count': CommentReport.objects.filter(status='RESOLVED').count(),
+        'dismissed_count': CommentReport.objects.filter(status='DISMISSED').count(),
+    }
+    return render(request, 'security_management/pages/admin_reports.html', context)
+
+
+@login_required
+@user_passes_test(is_staff_or_admin)
+@require_POST
+def admin_report_action_view(request, report_id):
+    """Handle admin actions on reported comments."""
+    from apps.concerns.models import CommentReport
+    
+    report = get_object_or_404(CommentReport, pk=report_id)
+    action = request.POST.get('action')
+    karma_penalty = int(request.POST.get('karma_penalty', 1))
+    admin_notes = request.POST.get('admin_notes', '')
+    
+    if action == 'delete':
+        # Delete the comment and deduct karma from author
+        comment_author = report.comment.author
+        comment_content = report.comment.content[:50]  # Save for audit
+        concern_id = report.comment.concern.pk
+        comment_to_delete = report.comment  # Store reference
+        
+        # Deduct karma
+        comment_author.points -= karma_penalty
+        comment_author.save()
+        
+        # Update report status BEFORE deleting the comment
+        report.status = 'RESOLVED'
+        report.reviewed_at = timezone.now()
+        report.reviewed_by = request.user
+        report.admin_notes = admin_notes
+        report.karma_deducted = karma_penalty
+        report.save()
+        
+        # Now delete the comment (this will cascade delete the report too due to FK)
+        comment_to_delete.delete()
+        
+        # Log the action
+        AuditLog.objects.create(
+            actor=request.user,
+            action='DELETE_COMMENT',
+            target=comment_author.username,
+            details=f"Deleted comment '{comment_content}...' and deducted {karma_penalty} karma. Reason: {report.reason}"
+        )
+        
+        messages.success(request, f"Comment deleted. {karma_penalty} karma deducted from {comment_author.username}.")
+        
+    elif action == 'dismiss':
+        report.status = 'DISMISSED'
+        report.reviewed_at = timezone.now()
+        report.reviewed_by = request.user
+        report.admin_notes = admin_notes
+        report.save()
+        
+        messages.info(request, "Report dismissed.")
+    
+    return redirect('security_management:admin_reports')

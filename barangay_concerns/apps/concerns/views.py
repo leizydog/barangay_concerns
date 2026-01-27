@@ -573,3 +573,41 @@ def concern_flag_reporter_view(request, pk):
         messages.success(request, f'User {concern.reporter.username} flagged for legal action.')
         
     return redirect('concerns:detail', pk=pk)
+
+
+@login_required
+def report_comment_view(request, comment_id):
+    """Allow users to report inappropriate comments."""
+    from .models import CommentReport
+    
+    comment = get_object_or_404(Comment, pk=comment_id)
+    
+    # Prevent self-reporting
+    if comment.author == request.user:
+        messages.error(request, "You cannot report your own comment.")
+        return redirect('concerns:detail', pk=comment.concern.pk)
+    
+    # Check for duplicate reports
+    existing_report = CommentReport.objects.filter(
+        comment=comment, 
+        reporter=request.user,
+        status='PENDING'
+    ).exists()
+    
+    if existing_report:
+        messages.info(request, "You have already reported this comment.")
+        return redirect('concerns:detail', pk=comment.concern.pk)
+    
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if reason:
+            CommentReport.objects.create(
+                comment=comment,
+                reporter=request.user,
+                reason=reason
+            )
+            messages.success(request, "Comment reported. An admin will review it shortly.")
+        else:
+            messages.error(request, "Please provide a reason for your report.")
+    
+    return redirect('concerns:detail', pk=comment.concern.pk)

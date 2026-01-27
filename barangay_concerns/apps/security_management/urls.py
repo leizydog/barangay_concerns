@@ -14,4 +14,6 @@ urlpatterns = [
     path('admin/users/', views.admin_users_view, name='admin_users'),
     path('admin/users/<int:user_id>/action/', views.admin_user_action_view, name='admin_user_action'),
     path('admin/announcements/', views.admin_announcements_view, name='admin_announcements'),
+    path('admin/reports/', views.admin_reports_view, name='admin_reports'),
+    path('admin/reports/<int:report_id>/action/', views.admin_report_action_view, name='admin_report_action'),
 ]

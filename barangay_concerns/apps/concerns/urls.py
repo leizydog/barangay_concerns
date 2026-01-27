@@ -20,4 +20,5 @@ urlpatterns = [
     path('<int:pk>/vote/', views.concern_vote_view, name='vote'),
     path('<int:pk>/flag/', views.concern_flag_reporter_view, name='flag_reporter'),
     path('create/', views.concern_create_view, name='create'),
+    path('comment/<int:comment_id>/report/', views.report_comment_view, name='report_comment'),
 ]

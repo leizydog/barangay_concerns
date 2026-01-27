@@ -174,3 +174,45 @@ class Vote(models.Model):
     def __str__(self):
         return f"{self.voter.username} voted {self.value} on {self.concern.title}"
 
+
+class CommentReport(models.Model):
+    """Track reported comments for admin moderation."""
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Review'),
+        ('RESOLVED', 'Resolved (Deleted)'),
+        ('DISMISSED', 'Dismissed'),
+    )
+    
+    comment = models.ForeignKey(Comment, on_delete=models.SET_NULL, null=True, blank=True, related_name='reports')
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comment_reports')
+    reason = models.TextField(help_text="Why is this comment inappropriate?")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    
+    # Store comment info for history (in case comment is deleted)
+    comment_author_username = models.CharField(max_length=150, blank=True)
+    comment_content_snapshot = models.TextField(blank=True, help_text="Snapshot of comment content at time of report")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        related_name='reviewed_reports'
+    )
+    admin_notes = models.TextField(blank=True, help_text="Admin notes on the decision")
+    karma_deducted = models.IntegerField(default=0, help_text="Karma points deducted from comment author")
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        author = self.comment_author_username or (self.comment.author.username if self.comment else "Unknown")
+        return f"Report on comment by {author} - {self.status}"
+    
+    def save(self, *args, **kwargs):
+        # Snapshot comment content on first save
+        if not self.pk and self.comment:
+            self.comment_author_username = self.comment.author.alias or self.comment.author.username
+            self.comment_content_snapshot = self.comment.content
+        super().save(*args, **kwargs)

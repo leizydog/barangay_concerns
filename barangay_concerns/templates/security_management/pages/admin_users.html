@@ -407,9 +407,14 @@
             <h1>👥 User Management</h1>
             <p>Monitor, moderate, and manage all platform users</p>
         </div>
-        <a href="{% url 'security_management:admin_announcements' %}" class="btn btn-primary">
-            <i data-lucide="megaphone" class="icon-sm"></i> Broadcasts
-        </a>
+        <div style="display: flex; gap: 0.75rem;">
+            <a href="{% url 'security_management:admin_reports' %}" class="btn btn-outline" style="border: 1px solid var(--border-color); background: var(--bg-card);">
+                <i data-lucide="flag" class="icon-sm"></i> Reports
+            </a>
+            <a href="{% url 'security_management:admin_announcements' %}" class="btn btn-primary">
+                <i data-lucide="megaphone" class="icon-sm"></i> Broadcasts
+            </a>
+        </div>
     </div>
     
     <!-- Stats -->
