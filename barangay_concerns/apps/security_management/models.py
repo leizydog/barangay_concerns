@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 class User(AbstractUser):
     ROLE_CHOICES = (
@@ -44,7 +45,7 @@ class Announcement(models.Model):
         ('INFO', 'Information'),
         ('WARNING', 'Warning'),
         ('DANGER', 'Emergency/Danger'),
-        ('SUCCESS', 'Success/Good News'),
+        ('SUCCESS', 'Good News'),
     )
     message = models.TextField()
     type = models.CharField(max_length=10, choices=TYPES, default='INFO')
@@ -55,6 +56,15 @@ class Announcement(models.Model):
 
     def __str__(self):
         return f"[{self.get_type_display()}] {self.message[:50]}"
+    
+    @property
+    def is_currently_active(self):
+        """Check if announcement is both flagged active AND not expired."""
+        if not self.is_active:
+            return False
+        if self.active_until and self.active_until < timezone.now():
+            return False
+        return True
 
 class AuditLog(models.Model):
     ACTIONS = (

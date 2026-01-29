@@ -530,18 +530,18 @@
         </form>
     </div>
     
-    <!-- Broadcast History -->
-    <div class="history-section">
+    <!-- Active Broadcasts -->
+    <div class="history-section" style="margin-bottom: 2rem;">
         <div class="history-header">
-            <h3>Broadcast History</h3>
-            <span class="count">{{ announcements.count }} total</span>
+            <h3>🟢 Active Broadcasts</h3>
+            <span class="count">{{ active_announcements|length }} active</span>
         </div>
         
-        {% if announcements %}
+        {% if active_announcements %}
         <ul class="announcement-list">
-            {% for a in announcements %}
+            {% for a in active_announcements %}
             <li class="announcement-item">
-                <div class="status-indicator {% if a.is_active %}active{% else %}expired{% endif %}"></div>
+                <div class="status-indicator active"></div>
                 
                 <div class="message-content">
                     <div class="text">{{ a.message }}</div>
@@ -564,14 +564,14 @@
                 <div class="expiry-info">
                     {% if a.active_until %}
                         <div class="time">{{ a.active_until|date:"M d, h:i A" }}</div>
-                        <div class="label">{% if a.is_active %}Expires{% else %}Expired{% endif %}</div>
+                        <div class="label">Expires</div>
                     {% else %}
                         <div class="time">—</div>
                         <div class="label">No expiry</div>
                     {% endif %}
                 </div>
                 
-                {% if a.is_active %}
+                <div class="d-flex gap-2">
                     <form method="post" style="margin: 0;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="expire">
@@ -580,17 +580,76 @@
                             End Now
                         </button>
                     </form>
-                {% else %}
-                    <span class="expired-label">Ended</span>
-                {% endif %}
+                </div>
             </li>
             {% endfor %}
         </ul>
         {% else %}
-        <div class="empty-state">
-            <div class="icon">📢</div>
-            <h4>No announcements yet</h4>
-            <p>Create your first broadcast using the form above.</p>
+        <div class="empty-state" style="padding: 2rem;">
+            <p style="margin: 0; color: var(--text-tertiary);">No active broadcasts right now.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Expired Broadcasts -->
+    <div class="history-section">
+        <div class="history-header">
+            <h3>📜 Broadcast History</h3>
+            <span class="count">{{ expired_announcements|length }} expired</span>
+        </div>
+        
+        {% if expired_announcements %}
+        <ul class="announcement-list">
+            {% for a in expired_announcements %}
+            <li class="announcement-item">
+                <div class="status-indicator expired"></div>
+                
+                <div class="message-content">
+                    <div class="text" style="opacity: 0.7;">{{ a.message }}</div>
+                    <div class="meta">
+                        Posted by <strong>{{ a.created_by.username }}</strong> on {{ a.created_at|date:"M d, Y" }} at {{ a.created_at|time:"h:i A" }}
+                    </div>
+                </div>
+                
+                <span class="type-badge 
+                    {% if a.type == 'INFO' %}info{% endif %}
+                    {% if a.type == 'WARNING' %}warning{% endif %}
+                    {% if a.type == 'DANGER' %}danger{% endif %}
+                    {% if a.type == 'SUCCESS' %}success{% endif %}" style="opacity: 0.6;">
+                    {% if a.type == 'INFO' %}ℹ️ Info{% endif %}
+                    {% if a.type == 'WARNING' %}⚠️ Warning{% endif %}
+                    {% if a.type == 'DANGER' %}🚨 Emergency{% endif %}
+                    {% if a.type == 'SUCCESS' %}✅ Success{% endif %}
+                </span>
+                
+                <div class="expiry-info">
+                    {% if a.active_until %}
+                        <div class="time" style="opacity: 0.7;">{{ a.active_until|date:"M d, h:i A" }}</div>
+                        <div class="label">Expired</div>
+                    {% else %}
+                        <div class="time">—</div>
+                        <div class="label">Ended manually</div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <span class="expired-label">Ended</span>
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="announcement_id" value="{{ a.id }}">
+                        <button type="submit" class="expire-btn" style="background: #f1f5f9; color: #64748b;" 
+                                onclick="return confirm('Permanently delete this broadcast?')">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state" style="padding: 2rem;">
+            <p style="margin: 0; color: var(--text-tertiary);">No expired broadcasts yet.</p>
         </div>
         {% endif %}
     </div>

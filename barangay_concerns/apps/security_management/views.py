@@ -208,13 +208,32 @@ def admin_announcements_view(request):
             announcement_id = request.POST.get('announcement_id')
             Announcement.objects.filter(id=announcement_id).update(is_active=False)
             messages.success(request, "Announcement expired.")
+        
+        elif action == 'delete':
+            announcement_id = request.POST.get('announcement_id')
+            announcement = Announcement.objects.filter(id=announcement_id).first()
+            if announcement:
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action='ANNOUNCEMENT',
+                    target='Global',
+                    details=f"Deleted: {announcement.message[:50]}"
+                )
+                announcement.delete()
+                messages.success(request, "Announcement deleted.")
             
         return redirect('security_management:admin_announcements')
     
-    announcements = Announcement.objects.all().order_by('-created_at')
+    all_announcements = Announcement.objects.all().order_by('-created_at')
+    
+    # Separate active and expired
+    active_announcements = [a for a in all_announcements if a.is_currently_active]
+    expired_announcements = [a for a in all_announcements if not a.is_currently_active]
     
     context = {
-        'announcements': announcements,
+        'announcements': all_announcements,
+        'active_announcements': active_announcements,
+        'expired_announcements': expired_announcements,
         'types': Announcement.TYPES
     }
     return render(request, 'security_management/pages/admin_announcements.html', context)
