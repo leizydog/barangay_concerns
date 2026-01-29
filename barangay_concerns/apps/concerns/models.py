@@ -130,6 +130,7 @@ class Concern(models.Model):
 class Comment(models.Model):
     concern = models.ForeignKey(Concern, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -139,6 +140,10 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.concern.title}"
+    
+    @property
+    def is_reply(self):
+        return self.parent is not None
 
 class EmergencyUnit(models.Model):
     UNIT_TYPES = (

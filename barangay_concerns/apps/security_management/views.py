@@ -242,13 +242,42 @@ def admin_announcements_view(request):
 @login_required
 @user_passes_test(is_staff_or_admin)
 def admin_reports_view(request):
-    """Admin moderation queue for reported comments."""
-    from apps.concerns.models import CommentReport
+    """Admin moderation queue for reported comments - only shows items with 3+ reports."""
+    from apps.concerns.models import CommentReport, Comment
+    from django.db.models import Count
     
     tab = request.GET.get('tab', 'pending')
+    REPORT_THRESHOLD = 3  # Minimum reports required to appear in queue
     
+    # Get comments that have enough reports to warrant review
+    # Group by comment and count unique reporters
     if tab == 'pending':
-        reports = CommentReport.objects.filter(status='PENDING')
+        # Get comments with 3+ pending reports
+        comments_with_reports = CommentReport.objects.filter(status='PENDING') \
+            .values('comment_id') \
+            .annotate(report_count=Count('id')) \
+            .filter(report_count__gte=REPORT_THRESHOLD)
+        
+        comment_ids = [c['comment_id'] for c in comments_with_reports if c['comment_id']]
+        
+        # Get the most recent report for each qualifying comment
+        reports = CommentReport.objects.filter(
+            status='PENDING',
+            comment_id__in=comment_ids
+        ).order_by('comment_id', '-created_at').distinct('comment_id') if comment_ids else CommentReport.objects.none()
+        
+        # Fallback for SQLite (doesn't support distinct on specific field)
+        try:
+            reports = list(reports)
+        except:
+            # SQLite fallback - get latest report per comment
+            seen_comments = set()
+            all_reports = CommentReport.objects.filter(status='PENDING', comment_id__in=comment_ids).order_by('-created_at')
+            reports = []
+            for r in all_reports:
+                if r.comment_id not in seen_comments:
+                    seen_comments.add(r.comment_id)
+                    reports.append(r)
     elif tab == 'resolved':
         reports = CommentReport.objects.filter(status='RESOLVED')
     elif tab == 'dismissed':
@@ -256,10 +285,28 @@ def admin_reports_view(request):
     else:
         reports = CommentReport.objects.all()
     
+    # Attach report counts to each report for display
+    for report in reports:
+        if report.comment_id:
+            report.total_reports = CommentReport.objects.filter(
+                comment_id=report.comment_id, 
+                status='PENDING'
+            ).count()
+        else:
+            report.total_reports = 1
+    
+    # Count pending that meet threshold
+    pending_comments = CommentReport.objects.filter(status='PENDING') \
+        .values('comment_id') \
+        .annotate(count=Count('id')) \
+        .filter(count__gte=REPORT_THRESHOLD)
+    pending_count = len(pending_comments)
+    
     context = {
         'reports': reports,
         'tab': tab,
-        'pending_count': CommentReport.objects.filter(status='PENDING').count(),
+        'report_threshold': REPORT_THRESHOLD,
+        'pending_count': pending_count,
         'resolved_count': CommentReport.objects.filter(status='RESOLVED').count(),
         'dismissed_count': CommentReport.objects.filter(status='DISMISSED').count(),
     }

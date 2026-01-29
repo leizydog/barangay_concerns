@@ -563,12 +563,12 @@
             <div class="detail-card" style="padding: 0;">
                 <div class="detail-card-header">
                     <i data-lucide="message-circle" class="icon-sm"></i>
-                    Comments ({{ comments|length }})
+                    Comments ({{ concern.comments.count }})
                 </div>
                 <div class="detail-card-body">
                     <div class="comments-list">
                         {% for comment in comments %}
-                        <div class="comment-item">
+                        <div class="comment-item" id="comment-{{ comment.id }}">
                             {% if comment.author.profile_image %}
                             <img src="{{ comment.author.profile_image.url }}" alt="" class="comment-avatar" style="object-fit: cover;">
                             {% else %}
@@ -583,13 +583,69 @@
                                     <span class="comment-time">{{ comment.created_at|timesince }} ago</span>
                                 </div>
                                 <div class="comment-body">{{ comment.content }}</div>
-                                {% if user.is_authenticated and comment.author != user %}
-                                <div class="comment-actions" style="margin-top: 0.5rem;">
+                                <div class="comment-actions" style="margin-top: 0.5rem; display: flex; gap: 1rem;">
+                                    {% if user.is_authenticated %}
+                                    <button type="button" class="btn-reply-comment" 
+                                            onclick="toggleReplyForm({{ comment.id }})"
+                                            style="background: none; border: none; color: var(--primary); font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600;">
+                                        <i data-lucide="reply" style="width: 12px; height: 12px;"></i> Reply
+                                    </button>
+                                    {% endif %}
+                                    {% if user.is_authenticated and comment.author != user %}
                                     <button type="button" class="btn-report-comment" 
                                             onclick="openReportModal({{ comment.id }}, '{{ comment.author.alias|default:comment.author.username|escapejs }}')"
                                             style="background: none; border: none; color: var(--text-tertiary); font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;">
                                         <i data-lucide="flag" style="width: 12px; height: 12px;"></i> Report
                                     </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Inline Reply Form (hidden by default) -->
+                                {% if user.is_authenticated %}
+                                <div id="reply-form-{{ comment.id }}" class="reply-form" style="display: none; margin-top: 0.75rem; padding: 0.75rem; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+                                    <form method="post" action="{% url 'concerns:add_comment' concern.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                        <textarea name="content" class="comment-textarea" placeholder="Reply to {{ comment.author.alias|default:comment.author.username }}..." required style="min-height: 60px; font-size: 0.9rem;"></textarea>
+                                        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                            <button type="button" onclick="toggleReplyForm({{ comment.id }})" class="action-btn outline" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">Cancel</button>
+                                            <button type="submit" class="action-btn primary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">Reply</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Replies (nested) -->
+                                {% if comment.replies.exists %}
+                                <div class="replies-list" style="margin-top: 1rem; margin-left: 0.5rem; padding-left: 1rem; border-left: 2px solid #e2e8f0;">
+                                    {% for reply in comment.replies.all %}
+                                    <div class="comment-item reply-item" id="comment-{{ reply.id }}" style="margin-bottom: 0.75rem;">
+                                        {% if reply.author.profile_image %}
+                                        <img src="{{ reply.author.profile_image.url }}" alt="" class="comment-avatar" style="object-fit: cover; width: 28px; height: 28px;">
+                                        {% else %}
+                                        <div class="comment-avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">{{ reply.author.alias|default:reply.author.username|first }}</div>
+                                        {% endif %}
+                                        <div class="comment-content">
+                                            <div class="comment-header">
+                                                <span class="comment-author" style="font-size: 0.85rem;">{{ reply.author.alias|default:reply.author.username }}</span>
+                                                {% if reply.author.is_lgu %}
+                                                <span class="comment-badge" style="font-size: 0.6rem;">OFFICIAL</span>
+                                                {% endif %}
+                                                <span class="comment-time" style="font-size: 0.75rem;">{{ reply.created_at|timesince }} ago</span>
+                                            </div>
+                                            <div class="comment-body" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">{{ reply.content }}</div>
+                                            <div class="comment-actions" style="margin-top: 0.35rem; display: flex; gap: 1rem;">
+                                                {% if user.is_authenticated and reply.author != user %}
+                                                <button type="button" class="btn-report-comment" 
+                                                        onclick="openReportModal({{ reply.id }}, '{{ reply.author.alias|default:reply.author.username|escapejs }}')"
+                                                        style="background: none; border: none; color: var(--text-tertiary); font-size: 0.7rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                    <i data-lucide="flag" style="width: 10px; height: 10px;"></i> Report
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
                                 </div>
                                 {% endif %}
                             </div>
@@ -792,6 +848,21 @@
             closeReportModal();
         }
     });
+    
+    // Toggle Reply Form
+    function toggleReplyForm(commentId) {
+        const form = document.getElementById('reply-form-' + commentId);
+        if (form) {
+            if (form.style.display === 'none') {
+                // Hide all other reply forms first
+                document.querySelectorAll('.reply-form').forEach(f => f.style.display = 'none');
+                form.style.display = 'block';
+                form.querySelector('textarea').focus();
+            } else {
+                form.style.display = 'none';
+            }
+        }
+    }
 </script>
 
 <!-- Report Comment Modal -->

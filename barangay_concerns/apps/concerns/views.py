@@ -164,8 +164,8 @@ def concern_detail_view(request, pk):
         return redirect('concerns:list')
     
     
-    # Get comments
-    comments = concern.comments.all()
+    # Get root comments only (replies accessed via comment.replies)
+    comments = concern.comments.filter(parent__isnull=True)
     comment_form = CommentForm()
 
     # Calculate votes
@@ -203,7 +203,7 @@ def concern_detail_view(request, pk):
 
 @login_required
 def concern_add_comment_view(request, pk):
-    """Add a comment to a concern"""
+    """Add a comment or reply to a concern"""
     concern = get_object_or_404(Concern, pk=pk)
     
     if request.method == 'POST':
@@ -212,6 +212,14 @@ def concern_add_comment_view(request, pk):
             comment = form.save(commit=False)
             comment.concern = concern
             comment.author = request.user
+            
+            # Handle reply to parent comment
+            parent_id = request.POST.get('parent_id')
+            if parent_id:
+                parent_comment = Comment.objects.filter(id=parent_id, concern=concern).first()
+                if parent_comment:
+                    comment.parent = parent_comment
+            
             comment.save()
             
             # Notify the concern reporter about the new comment

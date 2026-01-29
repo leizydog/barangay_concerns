@@ -235,11 +235,23 @@
         </a>
     </div>
     
+    {% if tab == 'pending' %}
+    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+        ℹ️ <strong>Note:</strong> Only comments reported by {{ report_threshold }}+ different users appear here to prevent trolling.
+    </div>
+    {% endif %}
+    
     {% for report in reports %}
     <div class="report-card {% if report.status == 'RESOLVED' %}resolved{% elif report.status == 'DISMISSED' %}dismissed{% endif %}">
         <div class="report-header">
             <div class="report-meta">
-                Reported by <strong>{{ report.reporter.username }}</strong> • {{ report.created_at|timesince }} ago
+                {% if report.total_reports %}
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fee2e2; color: #991b1b; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 600; font-size: 0.8rem; margin-bottom: 0.5rem;">
+                    🚨 {{ report.total_reports }} reports
+                </span>
+                <br>
+                {% endif %}
+                Latest report by <strong>{{ report.reporter.username }}</strong> • {{ report.created_at|timesince }} ago
                 {% if report.reviewed_by %}
                 <br>Reviewed by <strong>{{ report.reviewed_by.username }}</strong>
                 {% endif %}
