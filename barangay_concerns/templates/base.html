@@ -98,6 +98,13 @@
                     <i data-lucide="moon" id="theme-icon-moon" style="width: 20px; height: 20px; display: none;"></i>
                 </button>
 
+                <!-- Language Toggle -->
+                <button onclick="toggleLanguage()" class="btn btn-ghost p-2" 
+                        title="Toggle Language / Baguhin ang Wika" 
+                        style="display: flex; align-items: center; justify-content: center;">
+                    <span id="lang-icon" style="font-weight: 600; font-size: 0.85rem;">EN</span>
+                </button>
+
                 <div style="width: 1px; height: 24px; background: var(--border-color, #e2e8f0); margin: 0 0.25rem;"></div>
 
                 <!-- Report button visible to everyone -->
@@ -245,6 +252,202 @@
                 updateThemeIcons(savedTheme);
             });
         })();
+    </script>
+    
+    <!-- Language Translation Script -->
+    <script>
+        // Translation Dictionary: English -> Filipino
+        const translations = {
+            // Navigation
+            'Concern List': 'Listahan ng Reklamo',
+            'Map View': 'Mapa',
+            'Report': 'Mag-report',
+            'Report Issue': 'Mag-report ng Isyu',
+            'Log In': 'Mag-log In',
+            'Log Out': 'Mag-log Out',
+            'Dashboard': 'Dashboard',
+            'Admin': 'Admin',
+            
+            // Page Titles
+            'Community Concerns': 'Mga Reklamo ng Komunidad',
+            'Browse and track reported issues in our barangay.': 'Tingnan at subaybayan ang mga naiulat na isyu sa ating barangay.',
+            
+            // Filters & Tabs
+            'National': 'Pambansa',
+            'Regional': 'Panrehiyon',
+            'Provincial': 'Pamprobinsya',
+            'City/Municipal': 'Lungsod/Bayan',
+            'Barangay': 'Barangay',
+            'All Topics': 'Lahat ng Paksa',
+            'All Status': 'Lahat ng Status',
+            'Search...': 'Maghanap...',
+            
+            // Status
+            'Pending': 'Naghihintay',
+            'PENDING': 'NAGHIHINTAY',
+            'In Progress': 'Isinasagawa',
+            'IN PROGRESS': 'ISINASAGAWA',
+            'Resolved': 'Nalutas',
+            'RESOLVED': 'NALUTAS',
+            
+            // Categories
+            'Flooding': 'Pagbaha',
+            'Roads': 'Kalsada',
+            'Safety': 'Kaligtasan',
+            'Waste': 'Basura',
+            'Power': 'Kuryente',
+            'Electricity': 'Kuryente',
+            'Water': 'Tubig',
+            'Water Supply': 'Suplay ng Tubig',
+            'Other': 'Iba Pa',
+            
+            // Priority
+            'High': 'Mataas',
+            'HIGH': 'MATAAS',
+            'Medium': 'Katamtaman',
+            'MEDIUM': 'KATAMTAMAN',
+            'Low': 'Mababa',
+            'LOW': 'MABABA',
+            
+            // Concern Detail
+            'Details': 'Mga Detalye',
+            'Location': 'Lokasyon',
+            'Status': 'Kalagayan',
+            'Priority': 'Priyoridad',
+            'Category': 'Kategorya',
+            'Reported by': 'Naiulat ni',
+            'Reported on': 'Petsa ng Ulat',
+            'Comments': 'Mga Komento',
+            'Add a comment': 'Magdagdag ng komento',
+            'Add Comment': 'Idagdag ang Komento',
+            'Write a comment...': 'Magsulat ng komento...',
+            'No comments yet.': 'Wala pang mga komento.',
+            
+            // Actions
+            'Upvote': 'Bumoto Pataas',
+            'Downvote': 'Bumoto Pababa',
+            'Share': 'Ibahagi',
+            'Edit': 'I-edit',
+            'Delete': 'Tanggalin',
+            'Cancel': 'Kanselahin',
+            'Submit': 'Isumite',
+            'Save': 'I-save',
+            
+            // Create Concern Form
+            'Report a Concern': 'Mag-ulat ng Reklamo',
+            'Title': 'Pamagat',
+            'Description': 'Paglalarawan',
+            'Select Category': 'Pumili ng Kategorya',
+            'Select Priority': 'Pumili ng Priyoridad',
+            'Upload Image': 'Mag-upload ng Larawan',
+            'Click to upload or drag and drop': 'I-click para mag-upload o i-drag at i-drop',
+            'Report Anonymously': 'Mag-report nang Hindi Kilala',
+            'Submit Report': 'Isumite ang Ulat',
+            
+            // Messages
+            'Welcome back': 'Maligayang pagbabalik',
+            'Concern reported successfully!': 'Matagumpay na naiulat ang reklamo!',
+            'Comment added successfully.': 'Matagumpay na naidagdag ang komento.',
+            
+            // Chatbot
+            'Quick Questions:': 'Mabilis na Mga Tanong:',
+            'File a Concern': 'Mag-file ng Reklamo',
+            'Report Comment': 'Iulat ang Komento',
+            'Karma System': 'Sistema ng Karma',
+            'Voting': 'Pagboto',
+            'Anonymous': 'Hindi Kilala',
+            'Categories': 'Mga Kategorya',
+            'Type a message...': 'Mag-type ng mensahe...',
+            
+            // Profile
+            'Profile': 'Aking Profile',
+            'My Concerns': 'Aking mga Reklamo',
+            'Settings': 'Mga Setting',
+            
+            // Footer
+            'All rights reserved.': 'Lahat ng karapatan ay nakalaan.',
+            
+            // Misc
+            'ago': 'nakaraan',
+            'minutes': 'minuto',
+            'hours': 'oras',
+            'days': 'araw',
+            'View': 'Tingnan',
+            'View Details': 'Tingnan ang Detalye',
+            'Loading...': 'Naglo-load...',
+            'Error': 'May Error',
+            'Success': 'Tagumpay',
+            'Warning': 'Babala',
+            'Info': 'Impormasyon',
+        };
+        
+        let currentLang = localStorage.getItem('language') || 'en';
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'fil' : 'en';
+            localStorage.setItem('language', currentLang);
+            applyTranslations();
+            updateLangIcon();
+        }
+        
+        function updateLangIcon() {
+            const langIcon = document.getElementById('lang-icon');
+            if (langIcon) {
+                langIcon.textContent = currentLang === 'en' ? 'EN' : 'FIL';
+            }
+        }
+        
+        function applyTranslations() {
+            if (currentLang === 'en') {
+                // Reload page to restore English (original content)
+                location.reload();
+                return;
+            }
+            
+            // Translate text nodes
+            const walker = document.createTreeWalker(
+                document.body,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            while (walker.nextNode()) {
+                textNodes.push(walker.currentNode);
+            }
+            
+            textNodes.forEach(node => {
+                const text = node.textContent.trim();
+                if (translations[text]) {
+                    node.textContent = node.textContent.replace(text, translations[text]);
+                }
+            });
+            
+            // Translate placeholders
+            document.querySelectorAll('[placeholder]').forEach(el => {
+                const placeholder = el.getAttribute('placeholder');
+                if (translations[placeholder]) {
+                    el.setAttribute('placeholder', translations[placeholder]);
+                }
+            });
+            
+            // Translate button values
+            document.querySelectorAll('button, input[type="submit"]').forEach(el => {
+                const text = el.textContent.trim();
+                if (translations[text]) {
+                    el.textContent = translations[text];
+                }
+            });
+        }
+        
+        // Initialize language on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLangIcon();
+            if (currentLang === 'fil') {
+                applyTranslations();
+            }
+        });
     </script>
     {% block extra_js %}{% endblock %}
 </body>
