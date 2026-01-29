@@ -286,24 +286,35 @@
     }
     .comment-form {
         padding: 1.25rem;
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+    [data-theme="dark"] .comment-form {
+        border-top-color: var(--border-color, #374151);
         background: var(--bg-tertiary);
     }
     .comment-textarea {
         width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 10px;
-        border: 1px solid var(--border-color);
-        background: var(--bg-secondary);
+        border: 1px solid #d1d5db;
+        background: #ffffff;
         color: var(--text-primary);
         font-family: inherit;
         font-size: 0.95rem;
         resize: vertical;
         min-height: 80px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    [data-theme="dark"] .comment-textarea {
+        border-color: var(--border-color, #4b5563);
+        background: var(--bg-secondary, #1f2937);
+        box-shadow: none;
     }
     .comment-textarea:focus {
         outline: none;
         border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
     }
     .comment-submit {
         margin-top: 0.75rem;
