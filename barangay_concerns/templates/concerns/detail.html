@@ -167,21 +167,31 @@
 
     /* Content Cards */
     .detail-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
+        background: var(--bg-card, #ffffff);
+        border: 1px solid #e2e8f0;
         border-radius: 16px;
         overflow: hidden;
         margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+    [data-theme="dark"] .detail-card {
+        border-color: var(--border-color, #374151);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     }
     .detail-card-header {
         padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
         gap: 0.5rem;
         font-weight: 700;
         font-size: 0.95rem;
         color: var(--text-primary);
+        background: rgba(0, 0, 0, 0.02);
+    }
+    [data-theme="dark"] .detail-card-header {
+        border-bottom-color: var(--border-color, #374151);
+        background: rgba(255, 255, 255, 0.02);
     }
     .detail-card-body {
         padding: 1.25rem;
