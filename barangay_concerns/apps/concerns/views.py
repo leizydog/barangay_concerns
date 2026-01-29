@@ -223,10 +223,36 @@ def concern_add_comment_view(request, pk):
     return redirect('concerns:detail', pk=pk)
 
 def concern_create_view(request):
+    # Philippines bounding box (approximate)
+    PH_LAT_MIN = 4.5   # Southern tip (Tawi-Tawi)
+    PH_LAT_MAX = 21.5  # Northern tip (Batanes)
+    PH_LNG_MIN = 116.0 # Western edge
+    PH_LNG_MAX = 127.0 # Eastern edge
+    
+    def is_within_philippines(lat, lng):
+        """Check if coordinates are within Philippines boundaries."""
+        if lat is None or lng is None:
+            return True  # Allow if no coordinates (location optional)
+        try:
+            lat = float(lat)
+            lng = float(lng)
+            return PH_LAT_MIN <= lat <= PH_LAT_MAX and PH_LNG_MIN <= lng <= PH_LNG_MAX
+        except (ValueError, TypeError):
+            return True  # Allow if coordinates are invalid
+    
     if request.method == 'POST':
         form = ConcernForm(request.POST, request.FILES)
         if form.is_valid():
             concern = form.save(commit=False)
+            
+            # Validate location is within Philippines
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+            
+            if latitude and longitude:
+                if not is_within_philippines(latitude, longitude):
+                    messages.error(request, '📍 Reports can only be submitted from within the Philippines. Please enable location services or manually select a location within the country.')
+                    return render(request, 'concerns/create.html', {'form': form})
             
             # Handle Anonymous vs Logged-in and Inheritance of Location
             if request.user.is_authenticated:
