@@ -1,6 +1,6 @@
 # apps/security_management/forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
 from .models import User
 
 class UserRegistrationForm(UserCreationForm):
@@ -50,3 +50,9 @@ class UserProfileForm(forms.ModelForm):
         
         # Add help text for alias
         self.fields['alias'].help_text = "This name will be shown publicly. If left blank, a random one will be generated."
+
+class ChangePasswordForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-input'

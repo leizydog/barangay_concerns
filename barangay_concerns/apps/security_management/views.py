@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import timedelta
-from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
+from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm, ChangePasswordForm
 from .models import User, Announcement, AuditLog
 from apps.concerns.utils import generate_random_alias
 
@@ -76,6 +76,20 @@ def profile_view(request):
         form = UserProfileForm(instance=request.user)
     
     return render(request, 'security_management/pages/profile.html', {'form': form})
+
+@login_required
+def change_password_view(request):
+    if request.method == 'POST':
+        form = ChangePasswordForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Your password has been changed successfully!')
+            return redirect('security_management:profile')
+    else:
+        form = ChangePasswordForm(request.user)
+    
+    return render(request, 'security_management/pages/change_password.html', {'form': form})
 
 # --- ADMIN MANAGEMENT VIEWS ---
 
