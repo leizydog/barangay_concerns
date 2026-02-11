@@ -4,12 +4,29 @@
 {% block title %}Home - Barangay Connect{% endblock %}
 
 {% block content %}
+<!-- ====== HERO SECTION ====== -->
 <div class="hero fade-in">
+    <!-- Animated floating shapes -->
+    <div class="hero-shapes">
+        <div class="hero-shape shape-1"></div>
+        <div class="hero-shape shape-2"></div>
+        <div class="hero-shape shape-3"></div>
+        <div class="hero-shape shape-4"></div>
+        <div class="hero-shape shape-5"></div>
+    </div>
+
     <div class="container hero-content">
-        <h1 class="hero-title">Community Concerns Platform</h1>
+        <div class="hero-badge">
+            <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+            Trusted by communities across the Philippines
+        </div>
+        <h1 class="hero-title">
+            Your Voice for a<br>
+            <span class="text-gradient-hero">Better Community</span>
+        </h1>
         <p class="hero-subtitle">
             Report and track community issues in your barangay.
-            Help us build a better, safer, and more responsive community.
+            Help us build a safer, cleaner, and more responsive neighborhood — together.
         </p>
 
         {% if user.is_authenticated %}
@@ -24,7 +41,7 @@
         {% else %}
         <div class="hero-actions">
             <a href="{% url 'security_management:register' %}" class="btn btn-primary btn-lg">
-                <i data-lucide="user-plus" class="icon-md"></i> Get Started
+                <i data-lucide="user-plus" class="icon-md"></i> Get Started — It's Free
             </a>
             <a href="{% url 'security_management:login' %}" class="btn btn-outline btn-lg">
                 <i data-lucide="log-in" class="icon-md"></i> Login
@@ -34,67 +51,114 @@
     </div>
 </div>
 
+<!-- ====== MARQUEE CATEGORIES ====== -->
+<section class="categories-marquee">
+    <div class="container">
+        <h2 class="section-title">Report Categories</h2>
+        <p class="section-desc">From flooding to public safety — report any concern that matters to your community.</p>
+    </div>
+
+    <!-- Row 1: scrolls left -->
+    <div class="marquee-row">
+        <div class="marquee-track marquee-left">
+            <div class="marquee-item cat-flood"><span class="marquee-icon"><i data-lucide="waves"></i></span><span>Flooding</span></div>
+            <div class="marquee-item cat-road"><span class="marquee-icon"><i data-lucide="cone"></i></span><span>Road Infrastructure</span></div>
+            <div class="marquee-item cat-waste"><span class="marquee-icon"><i data-lucide="trash-2"></i></span><span>Waste Management</span></div>
+            <div class="marquee-item cat-power"><span class="marquee-icon"><i data-lucide="zap"></i></span><span>Electricity</span></div>
+            <div class="marquee-item cat-water"><span class="marquee-icon"><i data-lucide="droplet"></i></span><span>Water Supply</span></div>
+            <div class="marquee-item cat-safety"><span class="marquee-icon"><i data-lucide="shield-alert"></i></span><span>Public Safety</span></div>
+            <div class="marquee-item cat-noise"><span class="marquee-icon"><i data-lucide="volume-2"></i></span><span>Noise Pollution</span></div>
+            <div class="marquee-item cat-health"><span class="marquee-icon"><i data-lucide="heart-pulse"></i></span><span>Health & Sanitation</span></div>
+            <!-- Duplicate set for seamless loop -->
+            <div class="marquee-item cat-flood"><span class="marquee-icon"><i data-lucide="waves"></i></span><span>Flooding</span></div>
+            <div class="marquee-item cat-road"><span class="marquee-icon"><i data-lucide="cone"></i></span><span>Road Infrastructure</span></div>
+            <div class="marquee-item cat-waste"><span class="marquee-icon"><i data-lucide="trash-2"></i></span><span>Waste Management</span></div>
+            <div class="marquee-item cat-power"><span class="marquee-icon"><i data-lucide="zap"></i></span><span>Electricity</span></div>
+            <div class="marquee-item cat-water"><span class="marquee-icon"><i data-lucide="droplet"></i></span><span>Water Supply</span></div>
+            <div class="marquee-item cat-safety"><span class="marquee-icon"><i data-lucide="shield-alert"></i></span><span>Public Safety</span></div>
+            <div class="marquee-item cat-noise"><span class="marquee-icon"><i data-lucide="volume-2"></i></span><span>Noise Pollution</span></div>
+            <div class="marquee-item cat-health"><span class="marquee-icon"><i data-lucide="heart-pulse"></i></span><span>Health & Sanitation</span></div>
+        </div>
+    </div>
+
+    <!-- Row 2: scrolls right -->
+    <div class="marquee-row">
+        <div class="marquee-track marquee-right">
+            <div class="marquee-item cat-stray"><span class="marquee-icon"><i data-lucide="paw-print"></i></span><span>Stray Animals</span></div>
+            <div class="marquee-item cat-tree"><span class="marquee-icon"><i data-lucide="tree-pine"></i></span><span>Fallen Trees</span></div>
+            <div class="marquee-item cat-illegal"><span class="marquee-icon"><i data-lucide="ban"></i></span><span>Illegal Dumping</span></div>
+            <div class="marquee-item cat-light"><span class="marquee-icon"><i data-lucide="lightbulb"></i></span><span>Street Lighting</span></div>
+            <div class="marquee-item cat-drainage"><span class="marquee-icon"><i data-lucide="pipette"></i></span><span>Drainage Issues</span></div>
+            <div class="marquee-item cat-fire"><span class="marquee-icon"><i data-lucide="flame"></i></span><span>Fire Hazards</span></div>
+            <div class="marquee-item cat-traffic"><span class="marquee-icon"><i data-lucide="traffic-cone"></i></span><span>Traffic & Parking</span></div>
+            <div class="marquee-item cat-other"><span class="marquee-icon"><i data-lucide="circle-ellipsis"></i></span><span>Other Concerns</span></div>
+            <!-- Duplicate set for seamless loop -->
+            <div class="marquee-item cat-stray"><span class="marquee-icon"><i data-lucide="paw-print"></i></span><span>Stray Animals</span></div>
+            <div class="marquee-item cat-tree"><span class="marquee-icon"><i data-lucide="tree-pine"></i></span><span>Fallen Trees</span></div>
+            <div class="marquee-item cat-illegal"><span class="marquee-icon"><i data-lucide="ban"></i></span><span>Illegal Dumping</span></div>
+            <div class="marquee-item cat-light"><span class="marquee-icon"><i data-lucide="lightbulb"></i></span><span>Street Lighting</span></div>
+            <div class="marquee-item cat-drainage"><span class="marquee-icon"><i data-lucide="pipette"></i></span><span>Drainage Issues</span></div>
+            <div class="marquee-item cat-fire"><span class="marquee-icon"><i data-lucide="flame"></i></span><span>Fire Hazards</span></div>
+            <div class="marquee-item cat-traffic"><span class="marquee-icon"><i data-lucide="traffic-cone"></i></span><span>Traffic & Parking</span></div>
+            <div class="marquee-item cat-other"><span class="marquee-icon"><i data-lucide="circle-ellipsis"></i></span><span>Other Concerns</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- ====== HOW IT WORKS (STEPS) ====== -->
 <section class="features">
     <div class="container">
         <h2 class="section-title">How It Works</h2>
+        <p class="section-desc">Three simple steps to make your community better.</p>
 
-        <div class="features-grid">
-            <div class="feature-card fade-in">
-                <div class="feature-icon">
-                    <i data-lucide="edit-3"></i>
-                </div>
+        <div class="steps-container">
+            <div class="step-card fade-in">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i data-lucide="edit-3"></i></div>
                 <h3>Report Issues</h3>
-                <p>Easily report community concerns like floods, road damage, or safety issues with photos and detailed
-                    descriptions.</p>
+                <p>Snap a photo, describe the problem, and submit. It takes less than a minute.</p>
             </div>
 
-            <div class="feature-card fade-in" style="animation-delay: 100ms;">
-                <div class="feature-icon">
-                    <i data-lucide="eye"></i>
-                </div>
+            <div class="step-connector"><i data-lucide="chevrons-right"></i></div>
+
+            <div class="step-card fade-in" style="animation-delay: 150ms;">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i data-lucide="eye"></i></div>
                 <h3>Track Progress</h3>
-                <p>Monitor the status of your reported concerns in real-time and receive updates from LGU officials.</p>
+                <p>Monitor real-time status updates and get notified when LGU takes action.</p>
             </div>
 
-            <div class="feature-card fade-in" style="animation-delay: 200ms;">
-                <div class="feature-icon">
-                    <i data-lucide="check-circle"></i>
-                </div>
-                <h3>Get Results</h3>
-                <p>See how your concerns are being addressed and contribute to making your community better.</p>
+            <div class="step-connector"><i data-lucide="chevrons-right"></i></div>
+
+            <div class="step-card fade-in" style="animation-delay: 300ms;">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i data-lucide="check-circle"></i></div>
+                <h3>See Results</h3>
+                <p>Watch your community improve as concerns get resolved. Your voice matters.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="categories">
+<!-- ====== STATS + CTA ====== -->
+<section class="stats-section">
     <div class="container">
-        <h2 class="section-title">Report Categories</h2>
-
-        <div class="categories-grid">
-            <div class="category-item fade-in">
-                <span class="category-icon"><i data-lucide="waves"></i></span>
-                <span class="category-name">Flooding</span>
+        <div class="stats-grid">
+            <div class="stat-counter fade-in">
+                <div class="stat-number"><i data-lucide="file-text" style="width: 24px; height: 24px;"></i> 1,000+</div>
+                <div class="stat-label">Reports Filed</div>
             </div>
-            <div class="category-item fade-in" style="animation-delay: 50ms;">
-                <span class="category-icon"><i data-lucide="cone"></i></span>
-                <span class="category-name">Road Infrastructure</span>
+            <div class="stat-counter fade-in" style="animation-delay: 100ms;">
+                <div class="stat-number"><i data-lucide="map-pin" style="width: 24px; height: 24px;"></i> 50+</div>
+                <div class="stat-label">Barangays Connected</div>
             </div>
-            <div class="category-item fade-in" style="animation-delay: 100ms;">
-                <span class="category-icon"><i data-lucide="trash-2"></i></span>
-                <span class="category-name">Waste Management</span>
+            <div class="stat-counter fade-in" style="animation-delay: 200ms;">
+                <div class="stat-number"><i data-lucide="clock" style="width: 24px; height: 24px;"></i> 24/7</div>
+                <div class="stat-label">Community Support</div>
             </div>
-            <div class="category-item fade-in" style="animation-delay: 150ms;">
-                <span class="category-icon"><i data-lucide="zap"></i></span>
-                <span class="category-name">Electricity</span>
-            </div>
-            <div class="category-item fade-in" style="animation-delay: 200ms;">
-                <span class="category-icon"><i data-lucide="droplet"></i></span>
-                <span class="category-name">Water Supply</span>
-            </div>
-            <div class="category-item fade-in" style="animation-delay: 250ms;">
-                <span class="category-icon"><i data-lucide="shield-alert"></i></span>
-                <span class="category-name">Public Safety</span>
+            <div class="stat-counter fade-in" style="animation-delay: 300ms;">
+                <div class="stat-number"><i data-lucide="check-circle-2" style="width: 24px; height: 24px;"></i> 85%</div>
+                <div class="stat-label">Resolution Rate</div>
             </div>
         </div>
     </div>

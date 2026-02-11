@@ -883,6 +883,7 @@ a:hover {
 
     .features,
     .categories,
+    .categories-marquee,
     .cta {
         padding: 3rem 0;
     }
@@ -890,6 +891,396 @@ a:hover {
     .section-title {
         font-size: 1.5rem;
     }
+
+    .steps-container {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .step-connector {
+        transform: rotate(90deg);
+        margin: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-badge {
+        font-size: 0.75rem;
+    }
+}
+
+/* ========================================
+   REDESIGNED HOME PAGE ENHANCEMENTS
+   ======================================== */
+
+/* Hero Floating Shapes */
+.hero-shapes {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.08;
+    background: white;
+}
+
+.shape-1 {
+    width: 300px; height: 300px;
+    top: -80px; right: -60px;
+    animation: floatShape 8s ease-in-out infinite;
+}
+
+.shape-2 {
+    width: 200px; height: 200px;
+    bottom: -50px; left: -40px;
+    animation: floatShape 10s ease-in-out infinite reverse;
+}
+
+.shape-3 {
+    width: 120px; height: 120px;
+    top: 40%; left: 15%;
+    animation: floatShape 12s ease-in-out infinite 2s;
+}
+
+.shape-4 {
+    width: 80px; height: 80px;
+    top: 20%; right: 20%;
+    animation: floatShape 9s ease-in-out infinite 1s;
+}
+
+.shape-5 {
+    width: 160px; height: 160px;
+    bottom: 10%; right: 25%;
+    animation: floatShape 11s ease-in-out infinite 3s;
+}
+
+@keyframes floatShape {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(15px, -20px) scale(1.05); }
+    50% { transform: translate(-10px, 15px) scale(0.95); }
+    75% { transform: translate(20px, 10px) scale(1.02); }
+}
+
+/* Hero Badge */
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 0.5rem 1.25rem;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* Hero Gradient Text */
+.text-gradient-hero {
+    background: linear-gradient(135deg, #fff 0%, #c7d2fe 40%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Section Description */
+.section-desc {
+    text-align: center;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: -1.5rem auto 2.5rem;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* ========================================
+   MARQUEE CATEGORIES
+   ======================================== */
+
+.categories-marquee {
+    padding: 4rem 0 3rem;
+    background: var(--bg-body);
+    overflow: hidden;
+}
+
+.marquee-row {
+    overflow: hidden;
+    padding: 0.5rem 0;
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.marquee-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    will-change: transform;
+}
+
+.marquee-left {
+    animation: marqueeScrollLeft 35s linear infinite;
+}
+
+.marquee-right {
+    animation: marqueeScrollRight 35s linear infinite;
+}
+
+.marquee-row:hover .marquee-track {
+    animation-play-state: paused;
+}
+
+@keyframes marqueeScrollLeft {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeScrollRight {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+}
+
+.marquee-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    background: var(--bg-card);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    white-space: nowrap;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+    cursor: default;
+}
+
+.marquee-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px) scale(1.03);
+    border-color: var(--primary-light);
+}
+
+.marquee-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.marquee-icon i, .marquee-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Category Colors */
+.cat-flood .marquee-icon  { background: #dbeafe; color: #2563eb; }
+.cat-road .marquee-icon   { background: #ffedd5; color: #ea580c; }
+.cat-waste .marquee-icon  { background: #e2e8f0; color: #475569; }
+.cat-power .marquee-icon  { background: #fef3c7; color: #d97706; }
+.cat-water .marquee-icon  { background: #e0f2fe; color: #0284c7; }
+.cat-safety .marquee-icon { background: #fee2e2; color: #dc2626; }
+.cat-noise .marquee-icon  { background: #ede9fe; color: #7c3aed; }
+.cat-health .marquee-icon { background: #d1fae5; color: #059669; }
+.cat-stray .marquee-icon  { background: #fce7f3; color: #db2777; }
+.cat-tree .marquee-icon   { background: #dcfce7; color: #16a34a; }
+.cat-illegal .marquee-icon { background: #fef2f2; color: #b91c1c; }
+.cat-light .marquee-icon  { background: #fef9c3; color: #a16207; }
+.cat-drainage .marquee-icon { background: #cffafe; color: #0891b2; }
+.cat-fire .marquee-icon   { background: #fff1f2; color: #e11d48; }
+.cat-traffic .marquee-icon { background: #f3e8ff; color: #9333ea; }
+.cat-other .marquee-icon  { background: #f1f5f9; color: #64748b; }
+
+/* ========================================
+   HOW IT WORKS — STEP CARDS
+   ======================================== */
+
+.steps-container {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+}
+
+.step-card {
+    background: var(--bg-body);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.step-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.step-number {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+}
+
+.step-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-light), #c7d2fe);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: var(--primary);
+}
+
+.step-icon i, .step-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.step-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.step-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.step-connector {
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    color: var(--primary);
+    opacity: 0.4;
+    flex-shrink: 0;
+}
+
+.step-connector i, .step-connector svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* ========================================
+   STATS SECTION
+   ======================================== */
+
+.stats-section {
+    padding: 4rem 0 0;
+    background: var(--bg-card);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.stat-counter {
+    padding: 2rem 1rem;
+    border-radius: var(--radius-lg);
+    background: var(--bg-body);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.stat-counter:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   DARK MODE — NEW LANDING ELEMENTS
+   ======================================== */
+
+[data-theme="dark"] .marquee-item {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .step-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .step-icon {
+    background: var(--primary-light);
+}
+
+[data-theme="dark"] .stat-counter {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .categories-marquee {
+    background: var(--bg-body);
+}
+
+[data-theme="dark"] .stats-section {
+    background: var(--bg-card);
+}
+
+[data-theme="dark"] .text-gradient-hero {
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 40%, #c4b5fd 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* ========================================
